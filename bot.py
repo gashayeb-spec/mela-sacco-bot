@@ -31,6 +31,9 @@ logging.basicConfig(
 )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message:
+        return
+
     keyboard = [
         [InlineKeyboardButton("መላ ሳኮ Mini App ክፈት 🚀", web_app_url=WebAppInfo(url=WEB_APP_URL))]
     ]
@@ -44,6 +47,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        if not update.message or not update.message.web_app_data:
+            return
+
         raw_data = update.message.web_app_data.data
         data = json.loads(raw_data)
         
@@ -78,16 +84,22 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     except Exception as e:
         logging.error(f"Error processing WebApp data: {e}")
-        await update.message.reply_text("የተሳሳተ መረጃ ተልኳል። እባክዎ እንደገና ይሞክሩ።")
+        if update.message:
+            await update.message.reply_text("የተሳሳተ መረጃ ተልኳል። እባክዎ እንደገና ይሞክሩ።")
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.error("Exception while handling an update:", exc_info=context.error)
 
 def main():
     bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     bot_app.add_handler(CommandHandler("start", start))
     bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
+    
+    bot_app.add_error_handler(error_handler)
 
     print("🤖 Mela SACCO Bot እየሰራ ነው...")
-    bot_app.run_polling()
+    bot_app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
     main()
