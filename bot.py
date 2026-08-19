@@ -1,12 +1,29 @@
 import json
 import logging
 import os
+from threading import Thread
+from flask import Flask
 from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
+# --- 1. Render የ Port Scan ስህተት እንዳያሳይ የ Flask ሰርቨር ማዘጋጀት ---
+app = Flask(__name__)
+
+@app.route('/')
+def health_check():
+    return "Mela SACCO Bot is running perfectly!", 200
+
+def run_flask():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
+# Flask ሰርቨሩን ከበስተጀርባ ማስነሳት
+Thread(target=run_flask, daemon=True).start()
+
+# --- 2. የቦት ኮንፊግሬሽን ---
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAG6rHF_4D8RjuZJLsYqwzRRjhBjXjAbNHM")
 ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
-WEB_APP_URL = os.getenv("WEB_APP_URL", "https://your-github-username.github.io/mela-sacco-bot/")
+WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/")
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -64,13 +81,13 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text("የተሳሳተ መረጃ ተልኳል። እባክዎ እንደገና ይሞክሩ።")
 
 def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
+    bot_app.add_handler(CommandHandler("start", start))
+    bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
 
     print("🤖 Mela SACCO Bot እየሰራ ነው...")
-    app.run_polling()
+    bot_app.run_polling()
 
 if __name__ == "__main__":
     main()
