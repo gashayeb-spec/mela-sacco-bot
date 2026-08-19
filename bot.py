@@ -21,7 +21,7 @@ def run_flask():
 Thread(target=run_flask, daemon=True).start()
 
 # --- 2. የቦት ኮንፊግሬሽን ---
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAGtP66b2WoYknsdiKhb06W9HGcdnlODaPA")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M")
 ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
 WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/")
 
