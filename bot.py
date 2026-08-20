@@ -13,7 +13,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M")
 ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
-WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/?v=11.0")
+WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/?v=12.0")
 
 app = Flask(__name__)
 CORS(app)
@@ -47,6 +47,7 @@ def init_db():
 init_db()
 logging.basicConfig(level=logging.INFO)
 
+# በዌብሳይት በኩል የሚላክ መረጃ ተቀብሎ ለአድሚን በቴሌግራም የሚያደርስ API Endpoint
 @app.route('/api/data', methods=['POST'])
 def handle_api_data():
     data = request.json
@@ -67,13 +68,14 @@ def handle_api_data():
         tin = data.get("tin")
         vat = data.get("vat", "ያልተመዘገበ")
 
+        # መረጃዎችን በዳታቤዝ ውስጥ መመዝገብ
         cursor.execute('''
             INSERT OR REPLACE INTO users (user_id, fullname, phone, address, national_id, tin, vat, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (user_id if str(user_id).isdigit() else 1000, full_name, phone, address, national_id, tin, vat, 'Pending'))
         conn.commit()
 
-        # ለአድሚን የሚላክ የተሟላ የመመዝገቢያ መልእክት
+        # ለአድሚን የሚላክ የተሟላ ማሳወቂያ
         admin_msg = (
             f"📥 **አዲስ የአባልነት ማመልከቻ ደርሷል!**\n\n"
             f"👤 **ሙሉ ስም:** {full_name}\n"
@@ -82,7 +84,7 @@ def handle_api_data():
             f"🪪 **ናሽናል አይዲ:** `{national_id}`\n"
             f"🆔 **TIN ቁጥር:** `{tin}`\n"
             f"📄 **VAT ቁጥር:** `{vat}`\n"
-            f"🔢 **የመዝገብ/User ID:** `{user_id}`"
+            f"🔢 **የመዝገብ ID:** `{user_id}`"
         )
 
         kbd = InlineKeyboardMarkup([
@@ -134,6 +136,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=keyboard, parse_mode="Markdown"
     )
 
+# አድሚኑ Approve/Reject ሲጫን የሚሰራ አሰራር (ተመዝጋቢው ጋ መልእክት የሚያደርስ)
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -148,14 +151,30 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cursor.execute("UPDATE users SET status = 'Approved' WHERE user_id = ?", (target_id,))
         conn.commit()
         await query.message.reply_text(f"✅ የመዝገብ ቁጥር `{target_id}` አባልነቱ ጸድቋል!")
-        try: await context.bot.send_message(chat_id=int(target_id), text="🎉 **እንኳን ደስ አለዎት!** የአባልነት ማመልከቻዎ ጸድቋል።")
-        except: pass
+        
+        # ለአባሉ በቴሌግራም ማሳወቂያ መላክ
+        if str(target_id).isdigit():
+            try:
+                await context.bot.send_message(
+                    chat_id=int(target_id),
+                    text="🎉 **እንኳን ደስ አለዎት!**\n\nየመላ ህብረት ስራ ማህበር የአባልነት ማመልከቻዎ በአድሚኑ ጸድቋል። አሁን አገልግሎቶችን መጠቀም ይችላሉ።"
+                )
+            except Exception as e:
+                logging.error(f"ለተጠቃሚው ማሳወቅ አልተቻለም፦ {e}")
 
     elif action == "rej":
         cursor.execute("UPDATE users SET status = 'Rejected' WHERE user_id = ?", (target_id,))
         conn.commit()
-        try: await context.bot.send_message(chat_id=int(target_id), text="⚠️ **ማሳሰቢያ፦** ማመልከቻዎ አልጸደቀም።")
-        except: pass
+        await query.message.reply_text(f"❌ የመዝገብ ቁጥር `{target_id}` ማመልከቻው ተሰርዟል!")
+        
+        if str(target_id).isdigit():
+            try:
+                await context.bot.send_message(
+                    chat_id=int(target_id),
+                    text="⚠️ **ማሳሰቢያ፦**\n\nየአባልነት ማመልከቻዎ አልጸደቀም። እባክዎን የላኳቸውን መረጃዎች እንደገና አስተካክለው ያመልክቱ።"
+                )
+            except Exception as e:
+                logging.error(f"ለተጠቃሚው ማሳወቅ አልተቻለም፦ {e}")
 
     conn.close()
 
