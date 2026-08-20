@@ -11,17 +11,16 @@ from flask_cors import CORS
 from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M")
-ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
-WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/?v=12.0")
+# ሚስጥራዊ መረጃዎች ከ Render Environment Variables እንዲነበቡ ተደርገዋል
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "0"))
+WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/?v=13.0")
+PORT = int(os.environ.get("PORT", 10000))
 
 app = Flask(__name__)
 CORS(app)
 
 bot_instance = Bot(token=BOT_TOKEN)
-
-# Render የሚሰጠውን PORT ማንበቢያ
-PORT = int(os.environ.get("PORT", 10000))
 
 def init_db():
     conn = sqlite3.connect('sacco_database.db')
@@ -52,7 +51,7 @@ logging.basicConfig(level=logging.INFO)
 
 @app.route('/', methods=['GET'])
 def home():
-    return "Mela Sacco Bot Server is Running!", 200
+    return "Mela Sacco Bot Server is Online!", 200
 
 @app.route('/api/data', methods=['POST'])
 def handle_api_data():
@@ -180,7 +179,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.close()
 
 def main():
-    # Flask ሰርቨሩን አስቀድሞ በ Thread ማስነሳት
     flask_thread = Thread(target=run_flask)
     flask_thread.daemon = True
     flask_thread.start()
