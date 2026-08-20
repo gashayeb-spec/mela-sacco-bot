@@ -29,8 +29,7 @@ def init_db(super_admin_id):
             savings REAL DEFAULT 0.0,
             loan_amount REAL DEFAULT 0.0,
             loan_interest REAL DEFAULT 0.0,
-            loan_days INTEGER DEFAULT 0,
-            loan_start_date TEXT DEFAULT ''
+            loan_days INTEGER DEFAULT 0
         )
     ''')
     
@@ -99,14 +98,6 @@ def save_admin_message(sender_role, target_id, message):
     cursor.execute('INSERT INTO admin_messages (sender_role, target_id, message) VALUES (?, ?, ?)', (sender_role, target_id, message))
     conn.commit()
     conn.close()
-
-def get_admin_messages(target_id):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM admin_messages WHERE target_id = ? ORDER BY id ASC', (target_id,))
-    rows = cursor.fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
 
 def is_admin(telegram_id):
     return True
