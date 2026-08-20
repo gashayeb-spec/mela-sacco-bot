@@ -4,10 +4,10 @@ import os
 import sqlite3
 import base64
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, timedelta
 from threading import Thread
 from flask import Flask
-from telegram import Update, WebAppInfo, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
 app = Flask(__name__)
@@ -50,7 +50,6 @@ init_db()
 
 logging.basicConfig(level=logging.INFO)
 
-# ቦቱ ሲከፈት የሚመጣ አጠቃላይ መረጃ እና መግቢያ
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     conn = sqlite3.connect('sacco_database.db')
@@ -76,16 +75,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "1️⃣ **ምዝገባ፦** ታች ያለውን አዝራር ተጭነው አስፈላጊ መረጃዎችን (ቲን፣ ንግድ ፈቃድ፣ መታወቂያ) በማስገባት ይመዝገቡ።\n"
         "2️⃣ **ማረጋገጥ (Approval)፦** ያስገቡት መረጃ በአድሚን ተመርምሮ ሲጸድቅ የአባልነት ደረጃዎ **Approved** ይሆናል።\n"
         "3️⃣ **ቁጠባና ብድር፦** እንደ ቁጠባ መጠንዎ እስከ 3 እጥፍ ብድር ማግኘት እና መክፈያ ቀኑን በካሌንደር ቆጣሪ መከታተል ይችላሉ።\n\n"
-        "👇 **አገልግሎቱን ለመጀመር ታች ያለውን አዝራር ይጫኑ፦**"
+        "👇 **አገልግሎቱን ለመጀመር ከታች ያለውን አዝራር ይጫኑ፦**"
     )
 
-    # የተጠቃሚውን መረጃ ወደ Mini App መላኪያ ሊንክ ማዘጋጀት
     user_payload = json.dumps({"status": status, "savings": savings, "loan": loan, "daysLeft": days_left})
     encoded_payload = base64.b64encode(user_payload.encode()).decode()
-    dynamic_url = f"{WEB_APP_URL}#tgWebAppStartParam={encoded_payload}"
+    dynamic_url = f"{WEB_APP_URL}?tgWebAppStartParam={encoded_payload}"
 
-    btn = ReplyKeyboardMarkup([[KeyboardButton("የመላ ሳኮ ፖርታል (Mini App) 🚀", web_app=WebAppInfo(url=dynamic_url))]], resize_keyboard=True)
-    await update.message.reply_text(welcome_text, reply_markup=btn, parse_mode="Markdown")
+    # Inline Keyboard (ቀጥታ መልእክቱ ስር የሚወጣ አዝራር)
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🚀 የመላ ሳኮ ፖርታል ይክፈቱ", web_app=WebAppInfo(url=dynamic_url))]
+    ])
+    
+    await update.message.reply_text(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
 
 def b64_to_file(b64_str, name):
     if not b64_str or b64_str == "-": return None
@@ -103,6 +105,7 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
         conn = sqlite3.connect('sacco_database.db')
         cursor = conn.cursor()
 
+        # 1. አባል ሲመዘገብ
         if action == "register":
             cursor.execute('INSERT OR REPLACE INTO users (user_id, fullname, phone, tin, status) VALUES (?, ?, ?, ?, ?)',
                            (user.id, data['fullName'], data['phone'], data['tin'], 'Pending'))
@@ -125,6 +128,7 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 f = b64_to_file(data.get(key), doc_name)
                 if f: await context.bot.send_photo(chat_id=ADMIN_CHAT_ID, photo=f, caption=f"📄 {doc_name} - {data['fullName']}")
 
+        # 2. አድሚኑ መረጃ ሲያዘምን (Update)
         elif action == "update_account":
             target_id = int(data['targetUser'])
             days = int(data.get('days', 0))
@@ -134,19 +138,33 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
                            (float(data.get('savings', 0)), float(data.get('loan', 0)), due_date, target_id))
             conn.commit()
 
-            await update.message.reply_text(f"✅ ለተጠቃሚ ID `{target_id}` መረጃው ተዘምኗል!")
-            await context.bot.send_message(chat_id=target_id, text=f"🔔 **አዲስ የሂሳብ ማሳወቂያ!**\n\nየብድር/ቁጠባ ሂሳብዎ በአድሚን ተዘምኗል። ቦቱን እንደገና `/start` በማለት Mini App ገጽዎን ይክፈቱ።")
+            await update.message.reply_text(f"✅ **መረጃው ተዘምኗል!**\nተጠቃሚ ID: `{target_id}`\nተጨማሪ ቁጠባ: {data.get('savings')} ETB\nየተፈቀደ ብድር: {data.get('loan')} ETB", parse_mode="Markdown")
+            await context.bot.send_message(chat_id=target_id, text=f"🔔 **አዲስ የሂሳብ ማሳወቂያ!**\n\nየብድርና ቁጠባ ሂሳብዎ በአድሚን ተዘምኗል። ቦቱን እንደገና `/start` በማለት አዲሱን ሂሳብዎን ማየት ይችላሉ።")
 
+        # 3. አዲስ አድሚን ሲሾም
         elif action == "add_admin":
             new_admin = int(data['newAdminId'])
             cursor.execute('INSERT OR IGNORE INTO admins (admin_id) VALUES (?)', (new_admin,))
             conn.commit()
             await update.message.reply_text(f"👑 ተጠቃሚ ID `{new_admin}` አድሚን ሆኖ ተሾሟል!")
 
+        # 4. ብሮድካስት ማስታወቂያ ሲላክ
+        elif action == "broadcast":
+            msg_text = data['message']
+            cursor.execute("SELECT user_id FROM users")
+            all_users = cursor.fetchall()
+            count = 0
+            for u in all_users:
+                try:
+                    await context.bot.send_message(chat_id=u[0], text=f"📢 **የመላ ሳኮ ማስታወቂያ፦**\n\n{msg_text}", parse_mode="Markdown")
+                    count += 1
+                except: pass
+            await update.message.reply_text(f"📢 ማስታወቂያው ለ {count} አባላት በስኬት ተልኳል!")
+
         conn.close()
 
     except Exception as e:
-        logging.error(f"Error: {e}")
+        logging.error(f"Error handling WebApp Data: {e}")
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
