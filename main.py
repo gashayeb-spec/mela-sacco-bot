@@ -7,45 +7,16 @@ from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMar
 from telegram.ext import Application, CommandHandler, ContextTypes
 import database as db
 
-# ==================== CONFIGURATION ====================
 BOT_TOKEN = "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M"
 SUPER_ADMIN_ID = 5351353727
-
-# ⚠️ የ Render URL ህን እዚህ ጋር ያረጋግጡ
 WEB_APP_URL = "https://mela-sacco-bot.onrender.com"  
-
-# ⚠️ የቴሌግራም ቻናልህ ID ወይም Username (ቦቱን በቻናሉ Admin ማድረግህን እንዳትረሳ)
 CHANNEL_ID = "@mela_sacco_channel" 
 
 app = Flask(__name__)
 db.init_db(SUPER_ADMIN_ID)
-
 telegram_app = None
 
-# ==================== BOT HANDLERS ====================
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    
-    sacco_info = (
-        "🏦 **እንኳን ወደ መላ SACCO በሰላም መጡ!**\n\n"
-        "መላ SACCO የዲጂታል ብድር እና ቁጠባ ህብረት ስራ ማህበር ሲሆን የሚከተሉትን አገልግሎቶች ያቀርባል፡\n\n"
-        "• **የቁጠባ ሂሳብ (Savings):** በአስተማማኝ ሁኔታ ገንዘብዎን የሚቆጥቡበት\n"
-        "• **የብድር አገልግሎት (Loans):** ፈጣን የብድር አሰጣጥ እና የሰነድ ማረጋገጫ\n"
-        "• **ዲጂታል ዋሌት (Wallet):** የብድር፣ የቁጠባ እና የክፍያ ሁኔታዎን የሚከታተሉበት\n\n"
-        "አገልግሎቱን ለማግኘት ከታች ያለውን ቁልፍ ይጫኑ!"
-    )
-
-    keyboard = [
-        [InlineKeyboardButton("📱 መላ SACCO Mini App", web_app=WebAppInfo(url=f"{WEB_APP_URL}/"))]
-    ]
-
-    if user_id == SUPER_ADMIN_ID or db.is_admin(user_id):
-        keyboard.append([InlineKeyboardButton("🛡️ የአድሚን ፓነል (Admin Panel)", web_app=WebAppInfo(url=f"{WEB_APP_URL}/admin"))])
-        sacco_info += "\n\n👑 **የአድሚን ስልጣን አለዎት!**"
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(sacco_info, reply_markup=reply_markup, parse_mode="Markdown")
-
+# Async Helper for Telegram Messages
 def send_telegram_msg_async(chat_id, text):
     if telegram_app and telegram_app.bot:
         asyncio.run_coroutine_threadsafe(
@@ -53,7 +24,8 @@ def send_telegram_msg_async(chat_id, text):
             telegram_app.loop
         )
 
-# ==================== FLASK API ROUTES ====================
+# ==================== API ROUTES ====================
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -62,6 +34,7 @@ def index():
 def admin():
     return render_template("admin.html")
 
+# 1. አዲስ ምዝገባ - ወደ ዳታቤዝ ይገባል + ለዋና አድሚን እና ለቻናል ይላካል
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.json
@@ -72,87 +45,74 @@ def register():
         f"👤 **ስም:** {data.get('full_name')}\n"
         f"🆔 **መዝገብ ID:** `{reg_id}`\n"
         f"📞 **ስልክ:** {data.get('phone')}\n"
-        f"📄 **TIN:** {data.get('tin', 'የለውም')}\n"
-        f"🏬 **ንግድ ፈቃድ:** {data.get('trade_lic', 'የለውም')}\n"
-        f"🧾 **VAT:** {data.get('vat_no', 'የለውም')}\n\n"
-        f"እባክዎን በአድሚን ፓነል ገብተው ሰነዶቹን ያጽድቁ።"
+        f"📄 **TIN:** {data.get('tin', 'የለውም')}\n\n"
+        f"በአድሚን ፓነል ገብተው ማረጋገጥ ይችላሉ።"
     )
     send_telegram_msg_async(SUPER_ADMIN_ID, admin_msg)
+    return jsonify({"status": "success", "reg_id": reg_id, "message": "ምዝገባው ተሳክቷል!"})
 
-    channel_msg = (
-        f"🎉 **አዲስ አባል ተመዝግቧል!**\n\n"
-        f"አባል **{data.get('full_name')}** بالمላ SACCO ዲጂታል ሲስተም ላይ በስኬት ተመዝግበዋል።"
-    )
-    send_telegram_msg_async(CHANNEL_ID, channel_msg)
+# 2. የአድሚን ፓነል በየሰከንዱ አዳዲስ ተመዝጋቢዎችን የሚቀበልበት (Live Polling)
+@app.route("/api/admin/get-all-users", methods=["GET"])
+def get_all_users():
+    users = db.get_all_users()
+    return jsonify({"status": "success", "users": users})
 
-    return jsonify({"status": "success", "reg_id": reg_id, "message": "ምዝገባው ተሳክቷል! አድሚን እስኪያጸድቅልዎ ድረስ በፔንዲንግ ይቆያሉ።"})
-
+# 3. አድሚን አፕሩቭ ሲያደርግ - ለተጠቃሚው በቴሌግራም ይደርሳል
 @app.route("/api/admin/approve", methods=["POST"])
 def approve_user():
     data = request.json
     db.update_user_status(data['telegram_id'], data['status'])
     
     status_str = "ጽድቋል ✅" if data['status'] == 'Approved' else "ተሰርዟል ❌"
-    user_msg = f"🔔 **የአባልነት ማረጋገጫ መረጃ**\n\nየመላ SACCO አባልነት ማመልከቻዎ **{status_str}**።"
+    user_msg = f"🔔 **የመላ SACCO አባልነት ማረጋገጫ**\n\nየአባልነት ማመልከቻዎ **{status_str}**።"
     send_telegram_msg_async(data['telegram_id'], user_msg)
 
-    return jsonify({"status": "success", "message": f"የተጠቃሚው ሁኔታ ወደ {data['status']} ተቀይሯል።"})
+    return jsonify({"status": "success", "message": f"ሁኔታው ወደ {data['status']} ተቀይሯል።"})
 
-@app.route("/api/admin/set-loan", methods=["POST"])
-def set_loan():
+# 4. የአድሚኖች የውስጥ መልእክት ልውውጥ (Admin-to-Admin & Admin-to-User)
+@app.route("/api/admin/send-internal-msg", methods=["POST"])
+def send_internal_msg():
     data = request.json
-    db.update_loan(data['telegram_id'], data['amount'], data['interest'], data['days'])
+    sender_role = data.get('sender_role')
+    target_id = data.get('target_id')
+    message_text = data.get('message')
     
-    loan_msg = (
-        f"🎉 **የብድር ፈቃድ ማስታወቂያ!**\n\n"
-        f"💵 **የተፈቀደ ብድር:** {data['amount']} ETB\n"
-        f"📈 **ወለድ:** {data['interest']}%\n"
-        f"⏳ **የመክፈያ ጊዜ:** {data['days']} ቀናት\n\n"
-        f"ዝርዝሩን በሚኒ አፕ ዋሌትዎ ላይ ማየት ይችላሉ።"
-    )
-    send_telegram_msg_async(data['telegram_id'], loan_msg)
-
-    return jsonify({"status": "success", "message": "የብድር መረጃው ተስተካክሏል።"})
-
-@app.route("/api/admin/send-message", methods=["POST"])
-def send_message():
-    data = request.json
-    target_type = data.get('target_type')
-    msg_text = data.get('message')
+    # መልእክቱን ዳታቤዝ ላይ መመዝገብ
+    db.save_admin_message(sender_role, target_id, message_text)
     
-    if target_type == 'single':
-        target_id = data.get('target_id')
-        send_telegram_msg_async(target_id, f"💬 **ከአድሚን የተላከ መልእክት:**\n\n{msg_text}")
-    elif target_type == 'all':
-        users = db.get_all_users()
-        for u in users:
-            send_telegram_msg_async(u['telegram_id'], f"📢 **አጠቃላይ ማስታወቂያ:**\n\n{msg_text}")
-    elif target_type == 'channel':
-        send_telegram_msg_async(CHANNEL_ID, f"📢 **የመላ SACCO ኦፊሴላዊ ማስታወቂያ:**\n\n{msg_text}")
+    # ለተቀባዩ በቴሌግራም ማሳወቅ
+    notification = f"📩 **ከ[{sender_role}] የተላከ አዲስ መልእክት:**\n\n{message_text}"
+    send_telegram_msg_async(target_id, notification)
+    
+    return jsonify({"status": "success", "message": "መልእክቱ ደርሷል!"})
 
-    return jsonify({"status": "success", "message": "መልእክቱ በተሳካ ሁኔታ ተልኳል!"})
+# 5. የአድሚን የቻት ሂስቶሪ ማምጫ
+@app.route("/api/admin/get-messages/<int:target_id>", methods=["GET"])
+def get_messages(target_id):
+    messages = db.get_admin_messages(target_id)
+    return jsonify({"status": "success", "messages": messages})
 
-@app.route("/api/admin/get-pending-users", methods=["GET"])
-def pending_users():
-    users = db.get_pending_users()
-    return jsonify({"status": "success", "users": users})
+# ==================== BOT START ====================
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    keyboard = [[InlineKeyboardButton("📱 መላ SACCO Mini App", web_app=WebAppInfo(url=f"{WEB_APP_URL}/"))]]
+    if user_id == SUPER_ADMIN_ID or db.is_admin(user_id):
+        keyboard.append([InlineKeyboardButton("🛡️ የአድሚን ፓነል", web_app=WebAppInfo(url=f"{WEB_APP_URL}/admin"))])
+    
+    await update.message.reply_text("🏦 **እንኳን ወደ መላ SACCO በሰላም መጡ!**", reply_markup=InlineKeyboardMarkup(keyboard))
 
 def start_bot():
     global telegram_app
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    
     telegram_app = Application.builder().token(BOT_TOKEN).build()
     telegram_app.add_handler(CommandHandler("start", start))
-    
     loop.run_until_complete(telegram_app.initialize())
     loop.run_until_complete(telegram_app.start())
     loop.run_until_complete(telegram_app.updater.start_polling())
     loop.run_forever()
 
 if __name__ == "__main__":
-    bot_thread = threading.Thread(target=start_bot, daemon=True)
-    bot_thread.start()
-
+    threading.Thread(target=start_bot, daemon=True).start()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
