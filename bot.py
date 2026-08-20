@@ -1,318 +1,170 @@
-<!DOCTYPE html>
-<html lang="am">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>መላ ህብረት ስራ ማህበር (Mela SACCO)</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    :root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --accent-gold: #f59e0b;
-      --danger: #ef4444;
-      --success: #10b981;
-      --border-color: #334155;
-    }
+import json
+import logging
+import os
+import sqlite3
+import base64
+from io import BytesIO
+from threading import Thread
+from flask import Flask
+from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      margin: 0; padding: 20px;
-    }
+app = Flask(__name__)
+@app.route('/')
+def health(): return "Mela SACCO Backend Active!", 200
 
-    .container { width: 100%; max-width: 1400px; margin: 0 auto; }
-    
-    /* Navigation / Folder Tabs */
-    .nav-tabs {
-      display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px;
-    }
-    .tab-btn {
-      background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted);
-      padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; white-space: nowrap; transition: 0.2s;
-    }
-    .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+def run_flask():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
 
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M")
+ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
+WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/?v=8")
 
-    .card {
-      background: var(--card-bg); border: 1px solid var(--border-color);
-      border-radius: 16px; padding: 24px; margin-bottom: 20px;
-    }
+def init_db():
+    conn = sqlite3.connect('sacco_database.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER PRIMARY KEY,
+            fullname TEXT,
+            phone TEXT,
+            tin TEXT,
+            vat TEXT,
+            user_check TEXT,
+            guarantor_name TEXT,
+            guarantor_phone TEXT,
+            guarantor_check TEXT,
+            status TEXT DEFAULT 'Pending',
+            savings REAL DEFAULT 0.0,
+            loan_amount REAL DEFAULT 0.0
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
-    .btn {
-      background-color: var(--primary); color: white; border: none;
-      padding: 12px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px;
-    }
-    .btn-success { background-color: var(--success); }
-    .btn-warning { background-color: var(--accent-gold); color: #000; }
+init_db()
+logging.basicConfig(level=logging.INFO)
 
-    .input-group { margin-bottom: 14px; }
-    .input-group label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-muted); }
-    .input-group input, .input-group textarea {
-      width: 100%; padding: 11px; border-radius: 8px;
-      border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-main); box-sizing: border-box;
-    }
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🚀 የመላ ሳኮ ፖርታል ይክፈቱ", web_app=WebAppInfo(url=WEB_APP_URL))]
+    ])
+    await update.message.reply_text("🏥 **እንኳን ወደ መላ ህብረት ስራ ማህበር (Mela SACCO) በደህና መጡ!**\n\nከታች ያለውን አዝራር በመጫን ስለ ድርጅቱ ማወቅ፣ መመዝገብ ወይም የዋስትና ሰነድ ማያያዝ ይችላሉ።", reply_markup=keyboard, parse_mode="Markdown")
 
-    /* Accordion / Folder Section */
-    .accordion { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
-    .accordion-header { padding: 16px 20px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); }
-    .accordion-body { padding: 20px; display: none; border-top: 1px solid var(--border-color); font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-    .accordion.open .accordion-body { display: block; }
+async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        data = json.loads(update.message.web_app_data.data)
+        user = update.effective_user
+        action = data.get("action")
 
-    .hidden { display: none; }
-  </style>
-</head>
-<body>
+        conn = sqlite3.connect('sacco_database.db')
+        cursor = conn.cursor()
 
-<div class="container">
+        # 1. የአባልነት ምዝገባ መረጃ መቀበያ
+        if action == "register":
+            cursor.execute('''
+                INSERT OR REPLACE INTO users (user_id, fullname, phone, tin, vat, status)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (user.id, data['fullName'], data['phone'], data['tin'], data.get('vat', '-'), 'Pending'))
+            conn.commit()
 
-  <!-- Folder Navigation Tabs -->
-  <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('about-tab')">🏢 ስለ መላ ሳኮ</button>
-    <button class="tab-btn" onclick="switchTab('reg-tab')">📝 የአባልነት ምዝገባ</button>
-    <button class="tab-btn" onclick="switchTab('guarantor-tab')">🤝 የዋስትና ሰነድ ማስገቢያ</button>
-    <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab')">⚙️ አድሚን ፓናል</button>
-  </div>
+            await update.message.reply_text(f"⏳ **የአባልነት ማመልከቻዎ ተልኳል!**\n\nየእርስዎ የመዝገብ ቁጥር (Member ID)፦ `{user.id}` ነው\nአድሚኑ መርምሮ እስኪያጸድቅልዎ ድረስ ይቆዩ።", parse_mode="Markdown")
 
-  <!-- TAB 1: ስለ መላ ሳኮ እና ስለ ድርጅቱ (About & Goals Folder) -->
-  <div id="about-tab" class="tab-content">
-    <div class="card">
-      <h2>🏥 እንኳን ወደ መላ ህብረት ስራ ማህበር (Mela SACCO) በደህና መጡ!</h2>
-      <p>መላ ሳኮ ለአባላቱ ዘመናዊ፣ አስተማማኝና የተቀላጠፈ የቁጠባ፣ የብድርና የኢንቨስትመንት አገልግሎቶችን የሚያቀርብ ዲጂታል ሲስተም ነው።</p>
-    </div>
+            admin_msg = (
+                f"📥 **አዲስ የአባልነት ማመልከቻ!**\n\n"
+                f"👤 **ስም:** {data['fullName']}\n"
+                f"📞 **ስልክ:** `{data['phone']}`\n"
+                f"🆔 **TIN:** `{data['tin']}`\n"
+                f"📄 **VAT:** `{data.get('vat', '-')}`\n"
+                f"🔢 **የመዝገብ ቁጥር (ID):** `{user.id}`"
+            )
 
-    <div class="accordion" onclick="toggleAccordion(this)">
-      <div class="accordion-header"><span>🎯 የድርጅቱ ዓላማና ግብ (Mission & Vision)</span> <span>▼</span></div>
-      <div class="accordion-body">
-        <p><b>ዓላማችን፦</b> የአባላቶቻችንን የቁጠባ ባህል ማሳደግ፣ አነስተኛና መካከለኛ ንግዶችን በብድር ማጠናከር እንዲሁም የተቀላጠፈ የዲጂታል ፋይናንስ አገልግሎት ማቅረብ ነው።</p>
-        <p><b>ግባችን፦</b> በቴክኖሎጂ የተደገፈ ግልጽ፣ ፈጣን እና ደህንነቱ የተጠበቀ የብድርና ቁጠባ ስርዓት በመዘርጋት የአባላትን ኢኮኖሚያዊ አቅም ማሳደግ ነው።</p>
-      </div>
-    </div>
+            kbd = InlineKeyboardMarkup([
+                [InlineKeyboardButton("✅ Approve", callback_data=f"app_{user.id}"),
+                 InlineKeyboardButton("❌ Reject", callback_data=f"rej_{user.id}")]
+            ])
 
-    <div class="accordion" onclick="toggleAccordion(this)">
-      <div class="accordion-header"><span>📜 የብድር ዓይነቶች (Loan Types)</span> <span>▼</span></div>
-      <div class="accordion-body">
-        <ul>
-          <li><b>የአጭር ጊዜ ብድር፦</b> እስከ 3 ወር የሚቆይ ለአስቸኳይ የካፒታል ፍላጎቶች የሚሆን።</li>
-          <li><b>የንግድ ማስፋፊያ ብድር፦</b> እስከ ቁጠባዎ 3 እጥፍ የሚፈቀድና እስከ 12 ወር የሚከፈልበት።</li>
-          <li><b>የአስቸኳይ ጊዜ ብድር፦</b> በ12 ሰዓታት ውስጥ የሚፈቀድ አጭር ጊዜ ብድር።</li>
-        </ul>
-      </div>
-    </div>
+            if data.get('licenseImg'):
+                img_data = base64.b64decode(data['licenseImg'].split(',')[1])
+                await context.bot.send_photo(chat_id=ADMIN_CHAT_ID, photo=BytesIO(img_data), caption=admin_msg, parse_mode="Markdown", reply_markup=kbd)
+            else:
+                await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=admin_msg, parse_mode="Markdown", reply_markup=kbd)
 
-    <div class="accordion" onclick="toggleAccordion(this)">
-      <div class="accordion-header"><span>💰 የቁጠባና የአክሲዮን ስርዓት</span> <span>▼</span></div>
-      <div class="accordion-body">
-        <p><b>መደበኛ ቁጠባ፦</b> አባላት በየወሩ በቋሚነት የሚያስቀምጡት የቁጠባ መጠን።</p>
-        <p><b>የአክሲዮን ድርሻ፦</b> አባላት የድርጅቱ ባለቤት እንዲሆኑ የሚያስችላቸው የአክሲዮን ክፍፍል።</p>
-      </div>
-    </div>
-  </div>
+        # 2. የዋስትና ሰነድ መቀበያ
+        elif action == "submit_guarantor":
+            member_id = int(data['memberId'])
+            cursor.execute('''
+                UPDATE users SET user_check=?, guarantor_name=?, guarantor_phone=?, guarantor_check=?
+                WHERE user_id=?
+            ''', (data['userCheck'], data['guarantorName'], data['guarantorPhone'], data['guarantorCheck'], member_id))
+            conn.commit()
 
-  <!-- TAB 2: የአባልነት ምዝገባ ቅጽ (Member Registration Only) -->
-  <div id="reg-tab" class="tab-content hidden">
-    <div class="card" style="max-width: 600px; margin: 0 auto;">
-      <h3>📝 የአባልነት መመዝገቢያ ቅጽ</h3>
-      <p>አባል ለመሆን እባክዎን የሚከተሉትን መረጃዎች በጥንቃቄ ይሙሉ፦</p>
-      
-      <div class="input-group">
-        <label>ሙሉ ስም</label>
-        <input type="text" id="reg-name" placeholder="ሙሉ ስም ያስገቡ">
-      </div>
-      <div class="input-group">
-        <label>ስልክ ቁጥር (በ 09 ወይም 07 የሚጀምር)</label>
-        <input type="text" id="reg-phone" placeholder="09xxxxxxxx ወይም 07xxxxxxxx">
-      </div>
-      <div class="input-group">
-        <label>TIN ቁጥር</label>
-        <input type="text" id="reg-tin" placeholder="የቲን ቁጥር">
-      </div>
-      <div class="input-group">
-        <label>VAT ቁጥር (ካለዎት)</label>
-        <input type="text" id="reg-vat" placeholder="የቫት ቁጥር (አማራጭ)">
-      </div>
-      <div class="input-group">
-        <label>የንግድ ፈቃድ (ፎቶ/File Attachment)</label>
-        <input type="file" id="reg-license-file" accept="image/*">
-      </div>
-      <button class="btn btn-success" onclick="submitRegistration()">📩 የአባልነት ማመልከቻ ላክ</button>
-    </div>
-  </div>
+            await update.message.reply_text("✅ **የዋስትና ሰነድዎ በስኬት ተልኳል!**")
 
-  <!-- TAB 3: የዋስትና ሰነድ ማስገቢያ (Guarantor & Check Section) -->
-  <div id="guarantor-tab" class="tab-content hidden">
-    <div class="card" style="max-width: 600px; margin: 0 auto;">
-      <h3>🤝 የዋስትና እና የቼክ ሰነድ ማስገቢያ</h3>
-      <p>አባል ሆነው ከተመዘገቡ በኋላ የተሰጠዎትን <b>የመዝገብ ቁጥር (Member ID)</b> በማስገባት የዋስትና ሰነድዎን ያያይዙ፦</p>
-      
-      <div class="input-group">
-        <label>የአባልነት መዝገብ ቁጥር (Member ID/Telegram ID)</label>
-        <input type="text" id="guar-member-id" placeholder="የመዝገብ ቁጥርዎን ያስገቡ">
-      </div>
-      <div class="input-group">
-        <label>የተበዳሪው የቼክ ቁጥር</label>
-        <input type="text" id="guar-user-check" placeholder="የእርስዎ ቼክ ቁጥር">
-      </div>
-      <div class="input-group">
-        <label>የዋስ ሙሉ ስም</label>
-        <input type="text" id="guar-name" placeholder="የዋስ ስም">
-      </div>
-      <div class="input-group">
-        <label>የዋስ ስልክ ቁጥር (09/07)</label>
-        <input type="text" id="guar-phone" placeholder="09xxxxxxxx">
-      </div>
-      <div class="input-group">
-        <label>የዋሱ የቼክ ቁጥር</label>
-        <input type="text" id="guar-check" placeholder="የዋሱ ቼክ ቁጥር">
-      </div>
-      <button class="btn btn-warning" onclick="submitGuarantorDoc()">📩 የዋስትና ሰነድ ላክ</button>
-    </div>
-  </div>
+            guar_msg = (
+                f"🤝 **አዲስ የዋስትና ሰነድ ደርሷል!**\n\n"
+                f"🔢 **የአባሉ ID:** `{member_id}`\n"
+                f"💳 **የተበዳሪው ቼክ No:** `{data['userCheck']}`\n"
+                f"👤 **የዋስ ስም:** {data['guarantorName']}\n"
+                f"📞 **የዋስ ስልክ:** `{data['guarantorPhone']}`\n"
+                f"💳 **የዋስ ቼክ No:** `{data['guarantorCheck']}`"
+            )
+            await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=guar_msg, parse_mode="Markdown")
 
-  <!-- TAB 4: የአድሚን መቆጣጠሪያ ፓናል (Admin Panel) -->
-  <div id="admin-tab" class="tab-content hidden">
-    <div class="card" style="border: 2px solid var(--accent-gold);">
-      <h2>⚙️ የአድሚን መቆጣጠሪያ ፓናል (Admin Dashboard)</h2>
-      <p>አድሚን፣ እዚህ ጋር የአባላትን ቁጠባ፣ ብድርና የዋስትና ሰነዶች ማስተዳደር ይችላሉ።</p>
-    </div>
+        # 3. የአድሚን አካውንት ማስተካከያ
+        elif action == "update_account":
+            target_id = int(data['targetUser'])
+            cursor.execute('UPDATE users SET savings = savings + ?, loan_amount = ? WHERE user_id = ?',
+                           (float(data.get('savings', 0)), float(data.get('loan', 0)), target_id))
+            conn.commit()
+            await update.message.reply_text(f"✅ የመዝገብ ቁጥር `{target_id}` መረጃ ተዘምኗል!")
 
-    <div class="grid-2">
-      <div class="card">
-        <h3>💳 ቁጠባና ብድር ማስተካከያ</h3>
-        <div class="input-group"><label>የአባሉ የመዝገብ/Telegram ID</label><input type="number" id="adm-target-id" placeholder="Telegram ID"></div>
-        <div class="input-group"><label>የሚጨመር ቁጠባ (ETB)</label><input type="number" id="adm-savings" placeholder="0.00"></div>
-        <div class="input-group"><label>የተፈቀደ ብድር (ETB)</label><input type="number" id="adm-loan" placeholder="0.00"></div>
-        <button class="btn" onclick="updateUserAccount()">✅ መረጃውን አዘምን</button>
-      </div>
+        # 4. ብሮድካስት
+        elif action == "broadcast":
+            msg_text = data['message']
+            cursor.execute("SELECT user_id FROM users")
+            all_users = cursor.fetchall()
+            for u in all_users:
+                try: await context.bot.send_message(chat_id=u[0], text=f"📢 **የመላ ሳኮ ማስታወቂያ፦**\n\n{msg_text}", parse_mode="Markdown")
+                except: pass
+            await update.message.reply_text("📢 ማስታወቂያው ተልኳል!")
 
-      <div class="card">
-        <h3>📢 ለአባላት ማስታወቂያ መላኪያ</h3>
-        <div class="input-group"><label>የማስታወቂያ መልእክት</label><textarea id="adm-broadcast-msg" rows="4" placeholder="ማስታወቂያ ይፃፉ..."></textarea></div>
-        <button class="btn" onclick="sendBroadcast()">🚀 ማስታወቂያ ላክ</button>
-      </div>
-    </div>
-  </div>
+        conn.close()
 
-</div>
+    except Exception as e:
+        logging.error(f"Error handling WebApp Data: {e}")
 
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
 
-  const currentUserId = tg.initDataUnsafe?.user?.id;
-  const ADMIN_ID = 5351353727;
+    data_parts = query.data.split("_")
+    action, target_id = data_parts[0], int(data_parts[1])
 
-  if (currentUserId === ADMIN_ID) {
-    document.getElementById('admin-tab-btn').classList.remove('hidden');
-  }
+    conn = sqlite3.connect('sacco_database.db')
+    cursor = conn.cursor()
 
-  function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    
-    document.getElementById(tabId).classList.remove('hidden');
-    event.target.classList.add('active');
-  }
+    if action == "app":
+        cursor.execute("UPDATE users SET status = 'Approved' WHERE user_id = ?", (target_id,))
+        conn.commit()
+        await query.message.reply_text(f"✅ የመዝገብ ቁጥር `{target_id}` አባልነቱ ጸድቋል!")
+        await context.bot.send_message(chat_id=target_id, text="🎉 **እንኳን ደስ አለዎት!** የአባልነት ማመልከቻዎ ጸድቋል። አሁን ብድር መጠየቅና የዋስትና ሰነድ ማያያዝ ይችላሉ።")
 
-  function toggleAccordion(element) {
-    element.classList.toggle('open');
-  }
+    elif action == "rej":
+        cursor.execute("UPDATE users SET status = 'Rejected' WHERE user_id = ?", (target_id,))
+        conn.commit()
+        await context.bot.send_message(chat_id=target_id, text="⚠️ **ማሳሰቢያ፦** ማመልከቻዎ አልጸደቀም። እባክዎን ሰነዶችዎን አስተካክለው እንደገና ይላኩ።")
 
-  // 09 ወይም 07 የሚጀምር የ10 ዲጂት ስልክ ቁጥር ማረጋገጫ
-  function validateEthiopianPhone(phone) {
-    const phoneRegex = /^(09|07)\d{8}$/;
-    return phoneRegex.test(phone);
-  }
+    conn.close()
 
-  function getBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
-    });
-  }
+def main():
+    Thread(target=run_flask, daemon=True).start()
+    bot = ApplicationBuilder().token(BOT_TOKEN).build()
+    bot.add_handler(CommandHandler("start", start))
+    bot.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
+    bot.add_handler(CallbackQueryHandler(handle_callback))
+    bot.run_polling(drop_pending_updates=True)
 
-  async function submitRegistration() {
-    const fullName = document.getElementById('reg-name').value;
-    const phone = document.getElementById('reg-phone').value;
-    const tin = document.getElementById('reg-tin').value;
-    const vat = document.getElementById('reg-vat').value;
-    const fileInput = document.getElementById('reg-license-file').files[0];
-
-    if (!fullName || !phone || !tin) {
-      alert("እባክዎን ስም፣ ስልክ ቁጥር እና ቲን ቁጥር ያስገቡ!");
-      return;
-    }
-
-    if (!validateEthiopianPhone(phone)) {
-      alert("⚠️ እባክዎን ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ! (በ 09 ወይም 07 የሚጀምር 10 ዲጂት ቁጥር)");
-      return;
-    }
-
-    let fileBase64 = "";
-    if (fileInput) fileBase64 = await getBase64(fileInput);
-
-    tg.sendData(JSON.stringify({
-      action: "register",
-      fullName: fullName,
-      phone: phone,
-      tin: tin,
-      vat: vat,
-      licenseImg: fileBase64
-    }));
-  }
-
-  async function submitGuarantorDoc() {
-    const memberId = document.getElementById('guar-member-id').value;
-    const userCheck = document.getElementById('guar-user-check').value;
-    const gName = document.getElementById('guar-name').value;
-    const gPhone = document.getElementById('guar-phone').value;
-    const gCheck = document.getElementById('guar-check').value;
-
-    if (!memberId || !userCheck || !gName || !gPhone) {
-      alert("እባክዎን ሁሉንም የዋስትና መረጃዎች በጥንቃቄ ይሙሉ!");
-      return;
-    }
-
-    if (!validateEthiopianPhone(gPhone)) {
-      alert("⚠️ እባክዎን ትክክለኛ የዋስ ስልክ ቁጥር ያስገቡ! (በ 09 ወይም 07 የሚጀምር 10 ዲጂት)");
-      return;
-    }
-
-    tg.sendData(JSON.stringify({
-      action: "submit_guarantor",
-      memberId: memberId,
-      userCheck: userCheck,
-      guarantorName: gName,
-      guarantorPhone: gPhone,
-      guarantorCheck: gCheck
-    }));
-  }
-
-  function updateUserAccount() {
-    const targetUser = document.getElementById('adm-target-id').value;
-    const savings = document.getElementById('adm-savings').value || 0;
-    const loan = document.getElementById('adm-loan').value || 0;
-
-    if (!targetUser) return alert("የአባሉን ID ያስገቡ!");
-
-    tg.sendData(JSON.stringify({
-      action: "update_account", targetUser: targetUser, savings: savings, loan: loan
-    }));
-  }
-
-  function sendBroadcast() {
-    const msg = document.getElementById('adm-broadcast-msg').value;
-    if (!msg) return alert("መልእክት ያስገቡ");
-    tg.sendData(JSON.stringify({ action: "broadcast", message: msg }));
-  }
-</script>
-
-</body>
-</html>
+if __name__ == "__main__":
+    main()
