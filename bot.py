@@ -20,7 +20,9 @@ def run_flask():
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M")
 ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
-WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/")
+
+# ከታች ባለው መስመር ላይ Cache እንዲጠፋ ?v=3 ተጨምሯል
+WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/?v=3")
 
 def init_db():
     conn = sqlite3.connect('sacco_database.db')
@@ -80,9 +82,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_payload = json.dumps({"status": status, "savings": savings, "loan": loan, "daysLeft": days_left})
     encoded_payload = base64.b64encode(user_payload.encode()).decode()
-    dynamic_url = f"{WEB_APP_URL}?tgWebAppStartParam={encoded_payload}"
+    dynamic_url = f"{WEB_APP_URL}&tgWebAppStartParam={encoded_payload}" if "?" in WEB_APP_URL else f"{WEB_APP_URL}?tgWebAppStartParam={encoded_payload}"
 
-    # Inline Keyboard (ቀጥታ መልእክቱ ስር የሚወጣ አዝራር)
+    # Inline Keyboard
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("🚀 የመላ ሳኮ ፖርታል ይክፈቱ", web_app=WebAppInfo(url=dynamic_url))]
     ])
