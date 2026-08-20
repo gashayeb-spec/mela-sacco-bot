@@ -12,7 +12,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Cal
 
 app = Flask(__name__)
 @app.route('/')
-def health(): return "SACCO Portal Backend is Active!", 200
+def health(): return "Mela SACCO Backend Active!", 200
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
@@ -20,9 +20,7 @@ def run_flask():
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M")
 ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
-
-# ከታች ባለው መስመር ላይ Cache እንዲጠፋ ?v=3 ተጨምሯል
-WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/?v=3")
+WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/?v=6")
 
 def init_db():
     conn = sqlite3.connect('sacco_database.db')
@@ -33,6 +31,10 @@ def init_db():
             fullname TEXT,
             phone TEXT,
             tin TEXT,
+            user_check TEXT,
+            guarantor_name TEXT,
+            guarantor_phone TEXT,
+            guarantor_check TEXT,
             status TEXT DEFAULT 'NotRegistered',
             savings REAL DEFAULT 0.0,
             loan_amount REAL DEFAULT 0.0,
@@ -49,7 +51,6 @@ def init_db():
     conn.close()
 
 init_db()
-
 logging.basicConfig(level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -74,9 +75,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = (
         "🏥 **እንኳን ወደ መላ ህብረት ስራ ማህበር (Mela SACCO) በደህና መጡ!**\n\n"
         "**ይህ ዲጂታል ሲስተም እንዴት ይሰራል?**\n"
-        "1️⃣ **ምዝገባ፦** ታች ያለውን አዝራር ተጭነው አስፈላጊ መረጃዎችን (ቲን፣ ንግድ ፈቃድ፣ መታወቂያ) በማስገባት ይመዝገቡ።\n"
-        "2️⃣ **ማረጋገጥ (Approval)፦** ያስገቡት መረጃ በአድሚን ተመርምሮ ሲጸድቅ የአባልነት ደረጃዎ **Approved** ይሆናል።\n"
-        "3️⃣ **ቁጠባና ብድር፦** እንደ ቁጠባ መጠንዎ እስከ 3 እጥፍ ብድር ማግኘት እና መክፈያ ቀኑን በካሌንደር ቆጣሪ መከታተል ይችላሉ።\n\n"
+        "1️⃣ **ምዝገባ፦** አስፈላጊ መረጃዎችን (ቲን፣ ንግድ ፈቃድ፣ ቼክ፣ ዋስ) በማስገባት ይመዝገቡ።\n"
+        "2️⃣ **ማረጋገጥ (Approval)፦** ማመልከቻዎ በአድሚን ተመርምሮ ሲጸድቅ የአባልነት ደረጃዎ **Approved** ይሆናል።\n"
+        "3️⃣ **ቁጠባና ብድር፦** እስከ 3 እጥፍ ብድር ማግኘት እና መክፈያ ቀኑን በካሌንደር ቆጣሪ መከታተል ይችላሉ።\n\n"
         "👇 **አገልግሎቱን ለመጀመር ከታች ያለውን አዝራር ይጫኑ፦**"
     )
 
@@ -84,19 +85,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     encoded_payload = base64.b64encode(user_payload.encode()).decode()
     dynamic_url = f"{WEB_APP_URL}&tgWebAppStartParam={encoded_payload}" if "?" in WEB_APP_URL else f"{WEB_APP_URL}?tgWebAppStartParam={encoded_payload}"
 
-    # Inline Keyboard
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("🚀 የመላ ሳኮ ፖርታል ይክፈቱ", web_app=WebAppInfo(url=dynamic_url))]
     ])
     
     await update.message.reply_text(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
-
-def b64_to_file(b64_str, name):
-    if not b64_str or b64_str == "-": return None
-    if ',' in b64_str: b64_str = b64_str.split(',')[1]
-    file_bytes = BytesIO(base64.b64decode(b64_str))
-    file_bytes.name = f"{name}.jpg"
-    return file_bytes
 
 async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -107,30 +100,42 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
         conn = sqlite3.connect('sacco_database.db')
         cursor = conn.cursor()
 
-        # 1. አባል ሲመዘገብ
         if action == "register":
-            cursor.execute('INSERT OR REPLACE INTO users (user_id, fullname, phone, tin, status) VALUES (?, ?, ?, ?, ?)',
-                           (user.id, data['fullName'], data['phone'], data['tin'], 'Pending'))
+            cursor.execute('''
+                INSERT OR REPLACE INTO users 
+                (user_id, fullname, phone, tin, user_check, guarantor_name, guarantor_phone, guarantor_check, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (user.id, data['fullName'], data['phone'], data['tin'], data.get('userCheck'),
+                  data.get('guarantorName'), data.get('guarantorPhone'), data.get('guarantorCheck'), 'Pending'))
             conn.commit()
 
             await update.message.reply_text("⏳ **ማመልከቻዎ በስኬት ተልኳል!**\nአድሚኖች መርምረው አፕሩቭ እስኪያደርጉት ድረስ እባክዎ በትዕግስት ይጠብቁ።")
 
             admin_msg = (
-                f"📥 **አዲስ ማመልከቻ!**\n\n👤 **ስም:** {data['fullName']}\n📞 **ስልክ:** {data['phone']}\n"
-                f"🆔 **TIN:** `{data['tin']}`\n🔗 **ID:** `{user.id}`"
+                f"📥 **አዲስ የተመዘገበ አባል መረጃ!**\n\n"
+                f"👤 **ስም:** {data['fullName']}\n"
+                f"📞 **ስልክ:** `{data['phone']}`\n"
+                f"🆔 **TIN:** `{data['tin']}`\n"
+                f"💳 **የተበዳሪ ቼክ:** `{data.get('userCheck', '-')}`\n\n"
+                f"🤝 **የዋስ ስም:** {data.get('guarantorName', '-')}\n"
+                f"📞 **የዋስ ስልክ:** `{data.get('guarantorPhone', '-')}`\n"
+                f"💳 **የዋስ ቼክ:** `{data.get('guarantorCheck', '-')}`\n"
+                f"🆔 **Telegram ID:** `{user.id}`"
             )
+
             kbd = InlineKeyboardMarkup([
                 [InlineKeyboardButton("✅ Approve", callback_data=f"app_{user.id}"),
-                 InlineKeyboardButton("❌ Reject", callback_data=f"rej_{user.id}")]
+                 InlineKeyboardButton("❌ Reject", callback_data=f"rej_{user.id}"),
+                 InlineKeyboardButton("🚫 Block", callback_data=f"blk_{user.id}")],
+                [InlineKeyboardButton("💬 ከሰውየው ጋር በቀጥታ ተነጋገር", callback_data=f"chat_{user.id}")]
             ])
 
-            await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=admin_msg, parse_mode="Markdown", reply_markup=kbd)
-            
-            for doc_name, key in [("የንግድ ፈቃድ", "license"), ("መታወቂያ", "idDoc"), ("የጉርድ ፎቶ", "photo")]:
-                f = b64_to_file(data.get(key), doc_name)
-                if f: await context.bot.send_photo(chat_id=ADMIN_CHAT_ID, photo=f, caption=f"📄 {doc_name} - {data['fullName']}")
+            if data.get('licenseImg'):
+                img_data = base64.b64decode(data['licenseImg'].split(',')[1])
+                await context.bot.send_photo(chat_id=ADMIN_CHAT_ID, photo=BytesIO(img_data), caption=admin_msg, parse_mode="Markdown", reply_markup=kbd)
+            else:
+                await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=admin_msg, parse_mode="Markdown", reply_markup=kbd)
 
-        # 2. አድሚኑ መረጃ ሲያዘምን (Update)
         elif action == "update_account":
             target_id = int(data['targetUser'])
             days = int(data.get('days', 0))
@@ -140,17 +145,15 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
                            (float(data.get('savings', 0)), float(data.get('loan', 0)), due_date, target_id))
             conn.commit()
 
-            await update.message.reply_text(f"✅ **መረጃው ተዘምኗል!**\nተጠቃሚ ID: `{target_id}`\nተጨማሪ ቁጠባ: {data.get('savings')} ETB\nየተፈቀደ ብድር: {data.get('loan')} ETB", parse_mode="Markdown")
-            await context.bot.send_message(chat_id=target_id, text=f"🔔 **አዲስ የሂሳብ ማሳወቂያ!**\n\nየብድርና ቁጠባ ሂሳብዎ በአድሚን ተዘምኗል። ቦቱን እንደገና `/start` በማለት አዲሱን ሂሳብዎን ማየት ይችላሉ።")
+            await update.message.reply_text(f"✅ **መረጃው ተዘምኗል!**\nተጠቃሚ ID: `{target_id}`", parse_mode="Markdown")
+            await context.bot.send_message(chat_id=target_id, text=f"🔔 **አዲስ የሂሳብ ማሳወቂያ!**\n\nየብድርና ቁጠባ ሂሳብዎ በአድሚን ተዘምኗል። ቦቱን እንደገና `/start` በማለት ማየት ይችላሉ።")
 
-        # 3. አዲስ አድሚን ሲሾም
         elif action == "add_admin":
             new_admin = int(data['newAdminId'])
             cursor.execute('INSERT OR IGNORE INTO admins (admin_id) VALUES (?)', (new_admin,))
             conn.commit()
             await update.message.reply_text(f"👑 ተጠቃሚ ID `{new_admin}` አድሚን ሆኖ ተሾሟል!")
 
-        # 4. ብሮድካስት ማስታወቂያ ሲላክ
         elif action == "broadcast":
             msg_text = data['message']
             cursor.execute("SELECT user_id FROM users")
@@ -172,20 +175,30 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    action, user_id = query.data.split("_")[0], int(query.data.split("_")[1])
+    data_parts = query.data.split("_")
+    action, target_id = data_parts[0], int(data_parts[1])
+
     conn = sqlite3.connect('sacco_database.db')
     cursor = conn.cursor()
 
     if action == "app":
-        cursor.execute("UPDATE users SET status = 'Approved' WHERE user_id = ?", (user_id,))
+        cursor.execute("UPDATE users SET status = 'Approved' WHERE user_id = ?", (target_id,))
         conn.commit()
-        await query.edit_message_text(text=f"{query.message.text}\n\n✅ **ሁኔታ፦ አባልነቱ ጽድቋል!**")
-        await context.bot.send_message(chat_id=user_id, text="🎉 **እንኳን ደስ አለዎት!** የአባልነት ማመልከቻዎ ጸድቋል። ቦቱን እንደገና `/start` በማለት የብድርና ቁጠባ ዳሽቦርድዎን ማየት ይችላሉ።")
+        await query.edit_message_caption(caption=f"{query.message.caption}\n\n✅ **ሁኔታ፦ አባልነቱ ጽድቋል!**") if query.message.photo else await query.edit_message_text(text=f"{query.message.text}\n\n✅ **ሁኔታ፦ አባልነቱ ጽድቋል!**")
+        await context.bot.send_message(chat_id=target_id, text="🎉 **እንኳን ደስ አለዎት!** የአባልነት ማመልከቻዎ ጸድቋል። ቦቱን እንደገና `/start` በማለት ዳሽቦርድዎን ማየት ይችላሉ።")
+
     elif action == "rej":
-        cursor.execute("UPDATE users SET status = 'Rejected' WHERE user_id = ?", (user_id,))
+        cursor.execute("UPDATE users SET status = 'Rejected' WHERE user_id = ?", (target_id,))
         conn.commit()
-        await query.edit_message_text(text=f"{query.message.text}\n\n❌ **ሁኔታ፦ ማመልከቻው ውድቅ ተደርጓል!**")
-        await context.bot.send_message(chat_id=user_id, text="⚠️ **ማሳሰቢያ፦** ማመልከቻዎ ውድቅ ተደርጓል።")
+        await context.bot.send_message(chat_id=target_id, text="⚠️ **ማሳሰቢያ፦** ማመልከቻዎ አልጸደቀም። እባክዎን ሰነዶችዎን አስተካክለው እንደገና ይላኩ።")
+
+    elif action == "blk":
+        cursor.execute("UPDATE users SET status = 'Blocked' WHERE user_id = ?", (target_id,))
+        conn.commit()
+        await context.bot.send_message(chat_id=target_id, text="🚫 **መለያዎ ታግዷል።**")
+
+    elif action == "chat":
+        await context.bot.send_message(chat_id=query.from_user.id, text=f"💬 ለተጠቃሚው `{target_id}` መልእክት ለመላክ ቦቱ ላይ መፃፍ ይችላሉ።", parse_mode="Markdown")
 
     conn.close()
 
