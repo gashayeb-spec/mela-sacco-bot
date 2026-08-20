@@ -1,35 +1,14 @@
-:root {
-    --bg-color: #f4f7f6;
-    --card-bg: #ffffff;
-    --text-color: #333333;
-    --primary-color: #27ae60;
-    --danger-color: #e74c3c;
-}
-
-.theme-dark {
-    --bg-color: #1a1a2e;
-    --card-bg: #16213e;
-    --text-color: #ffffff;
-    --primary-color: #0f3460;
-}
-
-.theme-gold {
-    --bg-color: #2c2c2c;
-    --card-bg: #3a3a3a;
-    --text-color: #f1c40f;
-    --primary-color: #d4ac0d;
-}
-
 body {
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background-color: #1a1a2e;
+    color: #ffffff;
     padding: 15px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .container, .admin-container {
-    max-width: 800px;
+    max-width: 850px;
     margin: 0 auto;
 }
 
@@ -38,37 +17,53 @@ header {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.color-picker-box {
+    display: flex;
+    gap: 15px;
+    align-items: center;
 }
 
 .card {
-    background: var(--card-bg);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15);
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     margin-bottom: 20px;
 }
 
-input, select, button {
+input, select, textarea, button {
     width: 100%;
     padding: 12px;
     margin: 8px 0;
     border-radius: 6px;
-    border: 1px solid #ccc;
+    border: 1px solid #444;
+    background: rgba(0,0,0,0.2);
+    color: inherit;
     box-sizing: border-box;
 }
 
+input[type="color"] {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    cursor: pointer;
+    border: none;
+}
+
 .btn {
-    background-color: var(--primary-color);
+    background-color: #27ae60;
     color: white;
     font-weight: bold;
     border: none;
     cursor: pointer;
 }
 
-.btn-approve { background-color: #27ae60; color: white; width: auto; }
-.btn-block { background-color: #e74c3c; color: white; width: auto; }
-
-.balance-grid {
+.balance-grid, .finance-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
@@ -76,7 +71,7 @@ input, select, button {
 }
 
 .box {
-    background: rgba(0,0,0,0.05);
+    background: rgba(0,0,0,0.2);
     padding: 15px;
     border-radius: 8px;
     text-align: center;
@@ -85,12 +80,13 @@ input, select, button {
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 10px;
 }
 
 th, td {
     padding: 10px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #444;
     text-align: left;
 }
 
-.hidden { display: none; }
+.hidden { display: none !important; }
