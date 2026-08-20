@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>መላ ሳኮ | Mela SACCO</title>
-    <!-- Telegram Web App SDK -->
+    <title>መላ ሳኮ | Mela SACCO Membership</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -15,499 +14,168 @@
             --white: #ffffff;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { line-height: 1.6; color: var(--dark-color); background-color: var(--light-bg); }
 
-        body {
-            line-height: 1.6;
-            color: var(--dark-color);
-            background-color: var(--light-bg);
-        }
-
-        /* Header & Navigation */
         header {
             background-color: var(--primary-color);
             color: var(--white);
             padding: 1rem 5%;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--secondary-color);
-        }
-
-        .nav-container {
-            display: flex;
-            align-items: center;
-        }
-
-        nav a {
-            color: var(--white);
-            text-decoration: none;
-            margin-left: 20px;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        nav a:hover {
-            color: var(--secondary-color);
-        }
-
-        /* Language Selector Button */
+        .logo { font-size: 1.4rem; font-weight: bold; color: var(--secondary-color); }
         .lang-btn {
-            background-color: var(--secondary-color);
-            color: var(--dark-color);
-            border: none;
-            padding: 6px 15px;
-            margin-left: 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
+            background-color: var(--secondary-color); color: var(--dark-color);
+            border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-weight: bold;
         }
 
-        .lang-btn:hover {
-            background-color: #cc8f00;
+        .container { max-width: 800px; margin: 20px auto; padding: 20px; }
+        .card { background: var(--white); padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card h2 { color: var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 5px; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem;
         }
 
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(rgba(13, 92, 58, 0.85), rgba(13, 92, 58, 0.85)), url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1200&q=80');
-            background-size: cover;
-            background-position: center;
-            color: var(--white);
-            text-align: center;
-            padding: 100px 20px;
-        }
-
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto 25px;
-        }
-
-        .btn {
-            display: inline-block;
-            background-color: var(--secondary-color);
-            color: var(--dark-color);
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #cc8f00;
-        }
-
-        /* Sections General */
-        section {
-            padding: 60px 8%;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .section-title h2 {
-            font-size: 2rem;
-            color: var(--primary-color);
-        }
-
-        /* Services Section */
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-        }
-
-        .service-card {
-            background: var(--white);
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            text-align: center;
-            border-top: 4px solid var(--primary-color);
-        }
-
-        .service-card h3 {
-            margin-bottom: 15px;
-            color: var(--primary-color);
-        }
-
-        /* About Section */
-        .about-content {
-            background: var(--white);
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .about-content ul {
-            margin-top: 15px;
-            margin-left: 20px;
-        }
-
-        /* Contact Section */
-        .contact-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-
-        .contact-info, .contact-form {
-            background: var(--white);
-            padding: 30px;
-            border-radius: 8px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+        .file-note { font-size: 0.8rem; color: #666; margin-top: 2px; }
 
         .submit-btn {
-            background-color: var(--primary-color);
-            color: var(--white);
-            border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1rem;
+            background-color: var(--primary-color); color: var(--white);
+            border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold;
         }
-
-        .submit-btn:hover {
-            background-color: #094229;
-        }
-
-        /* Footer */
-        footer {
-            background-color: var(--dark-color);
-            color: var(--white);
-            text-align: center;
-            padding: 20px;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-            }
-            .nav-container {
-                margin-top: 15px;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            nav a {
-                margin: 0 10px;
-            }
-            .lang-btn {
-                margin-left: 10px;
-                margin-top: 5px;
-            }
-        }
+        .submit-btn:hover { background-color: #094229; }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
     <header>
         <div class="logo">መላ ሳኮ SACCO</div>
-        <div class="nav-container">
-            <nav>
-                <a href="#home" id="nav-home">መነሻ</a>
-                <a href="#about" id="nav-about">ስለ እኛ</a>
-                <a href="#services" id="nav-services">አገልግሎቶች</a>
-                <a href="#contact" id="nav-contact">ግንኙነት</a>
-            </nav>
-            <button class="lang-btn" id="lang-toggle" onclick="toggleLanguage()">EN</button>
-        </div>
+        <button class="lang-btn" id="lang-toggle" onclick="toggleLanguage()">EN</button>
     </header>
 
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <h1 id="hero-title">ለብሩህ የፋይናንስ አቅምዎ አስተማማኝ አጋር!</h1>
-        <p id="hero-desc">መላ ሳኮ የብድርና ቁጠባ ህብረት ስራ ማህበር የአባላቱን ሁለንተናዊ የኢኮኖሚ እድገት ለማረጋገጥ የተቋቋመ ታማኝ ተቋም ነው።</p>
-        <a href="#contact" class="btn" id="hero-btn">አባል ይሁኑ</a>
-    </section>
+    <div class="container">
+        <div class="card">
+            <h2 id="form-title">የአባልነት ማመልከቻ ቅጽ</h2>
+            <form id="membership-form" onsubmit="handleFormSubmit(event)">
+                
+                <!-- መታወቂያ መረጃ -->
+                <div class="form-group">
+                    <label id="lbl-fullname">ሙሉ ስም *</label>
+                    <input type="text" id="fullname" required>
+                </div>
 
-    <!-- About Section -->
-    <section id="about">
-        <div class="section-title">
-            <h2 id="about-title">ስለ ማህበራችን</h2>
-        </div>
-        <div class="about-content">
-            <p id="about-desc">መላ ሳኮ የብድርና ቁጠባ ህብረት ስራ ማህበር አባላት በጋራ በመቆጠብና ፍትሃዊ የብድር አገልግሎት በማግኘት ራሳቸውን እና አካባቢያቸውን እንዲያውቁ የተመሰረተ ማህበር ነው።</p>
-            <br>
-            <h3 id="goals-title">ዓላማዎቻችን፡</h3>
-            <ul>
-                <li id="goal-1">የቁጠባ ባህልን በማህበረሰቡ ዘንድ ማሳደግ</li>
-                <li id="goal-2">አነስተኛና አነስተኛ ያልሆኑ ብድሮችን በተመጣጣኝ ወለድ ማቅረብ</li>
-                <li id="goal-3">የአባላትን ስራ ፈጠራና ንግድ ማደገፍ</li>
-            </ul>
-        </div>
-    </section>
+                <div class="form-group">
+                    <label id="lbl-phone">ስልክ ቁጥር *</label>
+                    <input type="tel" id="phone" placeholder="09..." required>
+                </div>
 
-    <!-- Services Section -->
-    <section id="services">
-        <div class="section-title">
-            <h2 id="services-title">አገልግሎቶቻችን</h2>
-        </div>
-        <div class="services-grid">
-            <div class="service-card">
-                <h3 id="service1-title">መደበኛ ቁጠባ</h3>
-                <p id="service1-desc">አባላት በየወሩ በተወሰነ መጠን የሚቆጥቡበትና ለወደፊት ዋስትና የሚሆን የቁጠባ አይነት።</p>
-            </div>
-            <div class="service-card">
-                <h3 id="service2-title">የንግድ ብድር</h3>
-                <p id="service2-desc">የንግድ ስራቸውን ለማስፋፋት ወይም አዲስ ስራ ለመጀመር ለሚፈልጉ አባላት የሚሰጥ ብድር።</p>
-            </div>
-            <div class="service-card">
-                <h3 id="service3-title">የአደጋ ጊዜ ብድር</h3>
-                <p id="service3-desc">በድንገተኛ ሁኔታዎች ለሚያጋጥሙ የፋይናንስ ፍላጎቶች በፍጥነት የሚፈቀድ የአጭር ጊዜ ብድር።</p>
-            </div>
-            <div class="service-card">
-                <h3 id="service4-title">የህፃናት ቁጠባ</h3>
-                <p id="service4-desc">ወላጆች ለልጆቻቸው ብሩህ ተስፋና ትምህርት አስቀድመው የሚያስቀምጡበት ልዩ የቁጠባ ሂሳብ።</p>
-            </div>
-        </div>
-    </section>
+                <div class="form-group">
+                    <label id="lbl-tin">የቲን ቁጥር (TIN Number) *</label>
+                    <input type="text" id="tin-number" required>
+                </div>
 
-    <!-- Contact Section -->
-    <section id="contact">
-        <div class="section-title">
-            <h2 id="contact-title">ያግኙን</h2>
-        </div>
-        <div class="contact-container">
-            <div class="contact-info">
-                <h3 id="address-title">አድራሻችን</h3>
-                <br>
-                <p><strong id="lbl-phone">ስልክ፡</strong> +251 900 000 000</p>
-                <p><strong id="lbl-email">ኢሜይል፡</strong> info@melasacco.com</p>
-                <p><strong id="lbl-location">ቦታ፡</strong> ሀዋሳ፣ ኢትዮጵያ</p>
-                <p><strong id="lbl-hours">የስራ ሰዓት፡</strong> <span id="val-hours">ሰኞ - ቅዳሜ (ከጠዋቱ 2:00 - 11:30)</span></p>
-            </div>
-            <div class="contact-form">
-                <h3 id="form-title">መልእክት ይላኩ</h3>
-                <form id="contact-form-el" onsubmit="handleFormSubmit(event)">
-                    <div class="form-group">
-                        <label id="lbl-fullname">ሙሉ ስም</label>
-                        <input type="text" id="fullname-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label id="lbl-phonenum">ስልክ ቁጥር</label>
-                        <input type="tel" id="phone-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label id="lbl-message">መልእክት</label>
-                        <textarea id="message-input" rows="4" required></textarea>
-                    </div>
-                    <button type="submit" class="submit-btn" id="btn-submit">ላክ</button>
-                </form>
-            </div>
-        </div>
-    </section>
+                <!-- የንግድና የቫት ሁኔታ -->
+                <div class="form-group">
+                    <label id="lbl-vat-status">የ VAT ተመዝጋቢ ነዎት? *</label>
+                    <select id="vat-status" onchange="toggleVatInput()">
+                        <option value="no">አይደለሁም / አልተመዘገብኩም (-)</option>
+                        <option value="yes">አዎ ተመዝግቤአለሁ</option>
+                    </select>
+                </div>
 
-    <!-- Footer -->
-    <footer>
-        <p id="footer-text">&copy; 2026 መላ ሳኮ የብድርና ቁጠባ ህብረት ስራ ማህበር። መብቱ በህግ የተጠበቀ ነው።</p>
-    </footer>
+                <div class="form-group" id="vat-number-group" style="display: none;">
+                    <label id="lbl-vat-num">የ VAT ምዝገባ ቁጥር</label>
+                    <input type="text" id="vat-number" placeholder="የቫት ቁጥር ያስገቡ">
+                </div>
 
-    <!-- Translation & Telegram WebApp JavaScript -->
+                <!-- የሰነድ ማያያዣዎች -->
+                <div class="form-group">
+                    <label id="lbl-doc-license">የንግድ ፈቃድ (Business License) *</label>
+                    <input type="file" id="doc-license" accept="image/*" required>
+                    <div class="file-note">ፎቶ ወይም ስካን የተደረገ ሰነድ ያስገቡ</div>
+                </div>
+
+                <div class="form-group">
+                    <label id="lbl-doc-id">የታደሰ መታወቂያ / ፓስፖርት *</label>
+                    <input type="file" id="doc-id" accept="image/*" required>
+                </div>
+
+                <div class="form-group">
+                    <label id="lbl-doc-photo">የፓስፖርት መጠን ፎቶ *</label>
+                    <input type="file" id="doc-photo" accept="image/*" required>
+                </div>
+
+                <div class="form-group">
+                    <label id="lbl-doc-edu">የትምህርት ማስረጃ (አማራጭ)</label>
+                    <input type="file" id="doc-edu" accept="image/*">
+                </div>
+
+                <button type="submit" class="submit-btn" id="btn-submit">ማመልከቻውን ላክ</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         const tg = window.Telegram ? window.Telegram.WebApp : null;
-
-        if (tg) {
-            tg.ready();
-            tg.expand();
-
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                const user = tg.initDataUnsafe.user;
-                const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-                const nameInput = document.getElementById('fullname-input');
-                if (nameInput && fullName) {
-                    nameInput.value = fullName;
-                }
-            }
-        }
+        if (tg) { tg.ready(); tg.expand(); }
 
         let currentLang = 'am';
 
-        const translations = {
-            am: {
-                btnText: "EN",
-                navHome: "መነሻ",
-                navAbout: "ስለ እኛ",
-                navServices: "አገልግሎቶች",
-                navContact: "ግንኙነት",
-                heroTitle: "ለብሩህ የፋይናንስ አቅምዎ አስተማማኝ አጋር!",
-                heroDesc: "መላ ሳኮ የብድርና ቁጠባ ህብረት ስራ ማህበር የአባላቱን ሁለንተናዊ የኢኮኖሚ እድገት ለማረጋገጥ የተቋቋመ ታማኝ ተቋም ነው።",
-                heroBtn: "አባል ይሁኑ",
-                aboutTitle: "ስለ ማህበራችን",
-                aboutDesc: "መላ ሳኮ የብድርና ቁጠባ ህብረት ስራ ማህበር አባላት በጋራ በመቆጠብና ፍትሃዊ የብድር አገልግሎት በማግኘት ራሳቸውን እና አካባቢያቸውን እንዲያውቁ የተመሰረተ ማህበር ነው።",
-                goalsTitle: "ዓላማዎቻችን፡",
-                goal1: "የቁጠባ ባህልን በማህበረሰቡ ዘንድ ማሳደግ",
-                goal2: "አነስተኛና አነስተኛ ያልሆኑ ብድሮችን በተመጣጣኝ ወለድ ማቅረብ",
-                goal3: "የአባላትን ስራ ፈጠራና ንግድ ማደገፍ",
-                servicesTitle: "አገልግሎቶቻችን",
-                service1Title: "መደበኛ ቁጠባ",
-                service1Desc: "አባላት በየወሩ በተወሰነ መጠን የሚቆጥቡበትና ለወደፊት ዋስትና የሚሆን የቁጠባ አይነት።",
-                service2Title: "የንግድ ብድር",
-                service2Desc: "የንግድ ስራቸውን ለማስፋፋት ወይም አዲስ ስራ ለመጀመር ለሚፈልጉ አባላት የሚሰጥ ብድር።",
-                service3Title: "የአደጋ ጊዜ ብድር",
-                service3Desc: "በድንገተኛ ሁኔታዎች ለሚያጋጥሙ የፋይናንስ ፍላጎቶች በፍጥነት የሚፈቀድ የአጭር ጊዜ ብድር።",
-                service4Title: "የህፃናት ቁጠባ",
-                service4Desc: "ወላጆች ለልጆቻቸው ብሩህ ተስፋና ትምህርት አስቀድመው የሚያስቀምጡበት ልዩ የቁጠባ ሂሳብ።",
-                contactTitle: "ያግኙን",
-                addressTitle: "አድራሻችን",
-                lblPhone: "ስልክ፡",
-                lblEmail: "ኢሜይል፡",
-                lblLocation: "ቦታ፡",
-                lblHours: "የስራ ሰዓት፡",
-                valHours: "ሰኞ - ቅዳሜ (ከጠዋቱ 2:00 - 11:30)",
-                formTitle: "መልእክት ይላኩ",
-                lblFullname: "ሙሉ ስም",
-                lblPhonenum: "ስልክ ቁጥር",
-                lblMessage: "መልእክት",
-                btnSubmit: "ላክ",
-                footerText: "© 2026 መላ ሳኮ የብድርና ቁጠባ ህብረት ስራ ማህበር። መብቱ በህግ የተጠበቀ ነው።",
-                alertMsg: "መልእክትዎ ደርሶናል! በቅርቡ እናገኝዎታለን።"
-            },
-            en: {
-                btnText: "አማርኛ",
-                navHome: "Home",
-                navAbout: "About Us",
-                navServices: "Services",
-                navContact: "Contact",
-                heroTitle: "Your Trusted Partner for Financial Growth!",
-                heroDesc: "Mela SACCO is a reliable Savings and Credit Cooperative Society established to empower its members and foster economic development.",
-                heroBtn: "Become a Member",
-                aboutTitle: "About Us",
-                aboutDesc: "Mela SACCO was founded to support its members through joint savings and accessible, fair credit facilities.",
-                goalsTitle: "Our Goals:",
-                goal1: "Promote a culture of saving in the community",
-                goal2: "Provide micro and small business loans with fair interest rates",
-                goal3: "Support entrepreneurship and business development for members",
-                servicesTitle: "Our Services",
-                service1Title: "Regular Savings",
-                service1Desc: "A monthly savings plan for members to secure their financial future.",
-                service2Title: "Business Loans",
-                service2Desc: "Loans designed to help members expand their business or start new ventures.",
-                service3Title: "Emergency Loans",
-                service3Desc: "Quick short-term loans provided for unexpected financial demands.",
-                service4Title: "Children's Savings",
-                service4Desc: "A specialized savings plan for parents securing their children's education and future.",
-                contactTitle: "Contact Us",
-                addressTitle: "Our Address",
-                lblPhone: "Phone:",
-                lblEmail: "Email:",
-                lblLocation: "Location:",
-                lblHours: "Working Hours:",
-                valHours: "Mon - Sat (8:00 AM - 5:30 PM)",
-                formTitle: "Send a Message",
-                lblFullname: "Full Name",
-                lblPhonenum: "Phone Number",
-                lblMessage: "Message",
-                btnSubmit: "Send",
-                footerText: "© 2026 Mela SACCO. All Rights Reserved.",
-                alertMsg: "Thank you! Your message has been received."
-            }
-        };
-
-        function toggleLanguage() {
-            currentLang = currentLang === 'am' ? 'en' : 'am';
-            const langData = translations[currentLang];
-
-            document.getElementById('lang-toggle').innerText = langData.btnText;
-            document.getElementById('nav-home').innerText = langData.navHome;
-            document.getElementById('nav-about').innerText = langData.navAbout;
-            document.getElementById('nav-services').innerText = langData.navServices;
-            document.getElementById('nav-contact').innerText = langData.navContact;
-            document.getElementById('hero-title').innerText = langData.heroTitle;
-            document.getElementById('hero-desc').innerText = langData.heroDesc;
-            document.getElementById('hero-btn').innerText = langData.heroBtn;
-            document.getElementById('about-title').innerText = langData.aboutTitle;
-            document.getElementById('about-desc').innerText = langData.aboutDesc;
-            document.getElementById('goals-title').innerText = langData.goalsTitle;
-            document.getElementById('goal-1').innerText = langData.goal1;
-            document.getElementById('goal-2').innerText = langData.goal2;
-            document.getElementById('goal-3').innerText = langData.goal3;
-            document.getElementById('services-title').innerText = langData.servicesTitle;
-            document.getElementById('service1-title').innerText = langData.service1Title;
-            document.getElementById('service1-desc').innerText = langData.service1Desc;
-            document.getElementById('service2-title').innerText = langData.service2Title;
-            document.getElementById('service2-desc').innerText = langData.service2Desc;
-            document.getElementById('service3-title').innerText = langData.service3Title;
-            document.getElementById('service3-desc').innerText = langData.service3Desc;
-            document.getElementById('service4-title').innerText = langData.service4Title;
-            document.getElementById('service4-desc').innerText = langData.service4Desc;
-            document.getElementById('contact-title').innerText = langData.contactTitle;
-            document.getElementById('address-title').innerText = langData.addressTitle;
-            document.getElementById('lbl-phone').innerText = langData.lblPhone;
-            document.getElementById('lbl-email').innerText = langData.lblEmail;
-            document.getElementById('lbl-location').innerText = langData.lblLocation;
-            document.getElementById('lbl-hours').innerText = langData.lblHours;
-            document.getElementById('val-hours').innerText = langData.valHours;
-            document.getElementById('form-title').innerText = langData.formTitle;
-            document.getElementById('lbl-fullname').innerText = langData.lblFullname;
-            document.getElementById('lbl-phonenum').innerText = langData.lblPhonenum;
-            document.getElementById('lbl-message').innerText = langData.lblMessage;
-            document.getElementById('btn-submit').innerText = langData.btnSubmit;
-            document.getElementById('footer-text').innerText = langData.footerText;
+        function toggleVatInput() {
+            const vatStatus = document.getElementById('vat-status').value;
+            const vatGroup = document.getElementById('vat-number-group');
+            vatGroup.style.display = vatStatus === 'yes' ? 'block' : 'none';
         }
 
-        function handleFormSubmit(event) {
+        // ፋይልን ወደ Base64 string መቀየሪያ ፋንክሽን
+        const fileToBase64 = file => new Promise((resolve, reject) => {
+            if (!file) return resolve(null);
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        async function handleFormSubmit(event) {
             event.preventDefault();
 
-            const fullName = document.getElementById('fullname-input').value;
-            const phone = document.getElementById('phone-input').value;
-            const message = document.getElementById('message-input').value;
+            const submitBtn = document.getElementById('btn-submit');
+            submitBtn.innerText = "እየተላከ ነው...";
+            submitBtn.disabled = true;
 
-            const formData = {
-                fullName: fullName,
-                phone: phone,
-                message: message,
-                language: currentLang
-            };
+            try {
+                const licenseFile = document.getElementById('doc-license').files[0];
+                const idFile = document.getElementById('doc-id').files[0];
+                const photoFile = document.getElementById('doc-photo').files[0];
+                const eduFile = document.getElementById('doc-edu').files[0];
 
-            if (tg && tg.sendData) {
-                tg.sendData(JSON.stringify(formData));
-            } else {
-                alert(translations[currentLang].alertMsg);
+                const formData = {
+                    fullName: document.getElementById('fullname').value,
+                    phone: document.getElementById('phone').value,
+                    tinNumber: document.getElementById('tin-number').value,
+                    vatStatus: document.getElementById('vat-status').value,
+                    vatNumber: document.getElementById('vat-number').value || "-",
+                    licenseDoc: await fileToBase64(licenseFile),
+                    idDoc: await fileToBase64(idFile),
+                    photoDoc: await fileToBase64(photoFile),
+                    eduDoc: await fileToBase64(eduFile),
+                    language: currentLang
+                };
+
+                if (tg && tg.sendData) {
+                    tg.sendData(JSON.stringify(formData));
+                } else {
+                    alert("ማመልከቻዎ በስኬት ተልኳል!");
+                }
+            } catch (err) {
+                alert("ፋይሎችን በማዘጋጀት ላይ ስህተት ተፈጽሟል። እባክዎ ድጋሚ ይሞክሩ።");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "ማመልከቻውን ላክ";
             }
-
-            document.getElementById('contact-form-el').reset();
         }
     </script>
 </body>
