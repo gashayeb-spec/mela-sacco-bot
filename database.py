@@ -25,25 +25,19 @@ def init_db(super_admin_id):
             vat_no TEXT,
             status TEXT DEFAULT 'Pending',
             savings REAL DEFAULT 0.0,
-            loan_amount REAL DEFAULT 0.0,
-            interest_rate REAL DEFAULT 0.0,
-            loan_days INTEGER DEFAULT 0
+            loan_amount REAL DEFAULT 0.0
         )
     ''')
     
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS admins (
+        CREATE TABLE IF NOT EXISTS admin_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telegram_id INTEGER UNIQUE,
-            username TEXT UNIQUE,
-            role TEXT
+            sender_role TEXT,
+            target_id INTEGER,
+            message TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
-    
-    cursor.execute('''
-        INSERT OR IGNORE INTO admins (telegram_id, username, role) 
-        VALUES (?, 'SuperGM', 'GM')
-    ''', (super_admin_id,))
     
     conn.commit()
     conn.close()
@@ -55,40 +49,15 @@ def register_user(data):
     cursor.execute('''
         INSERT INTO users (reg_id, telegram_id, full_name, phone, tin, trade_reg, trade_lic, vat_no)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        reg_id, 
-        data['telegram_id'], 
-        data['full_name'], 
-        data['phone'], 
-        data.get('tin', ''), 
-        data.get('trade_reg', ''), 
-        data.get('trade_lic', ''), 
-        data.get('vat_no', '')
-    ))
+    ''', (reg_id, data['telegram_id'], data['full_name'], data['phone'], data.get('tin', ''), data.get('trade_reg', ''), data.get('trade_lic', ''), data.get('vat_no', '')))
     conn.commit()
     conn.close()
     return reg_id
 
-def is_admin(telegram_id):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM admins WHERE telegram_id = ?', (telegram_id,))
-    admin = cursor.fetchone()
-    conn.close()
-    return admin is not None
-
-def get_pending_users():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE status = 'Pending'")
-    rows = cursor.fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
-
 def get_all_users():
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users")
+    cursor.execute("SELECT * FROM users ORDER BY id DESC")
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -100,12 +69,20 @@ def update_user_status(telegram_id, status):
     conn.commit()
     conn.close()
 
-def update_loan(telegram_id, amount, interest, days):
+def save_admin_message(sender_role, target_id, message):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-        UPDATE users SET loan_amount = ?, interest_rate = ?, loan_days = ? 
-        WHERE telegram_id = ?
-    ''', (amount, interest, days, telegram_id))
+    cursor.execute('INSERT INTO admin_messages (sender_role, target_id, message) VALUES (?, ?, ?)', (sender_role, target_id, message))
     conn.commit()
     conn.close()
+
+def get_admin_messages(target_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM admin_messages WHERE target_id = ? ORDER BY id ASC', (target_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def is_admin(telegram_id):
+    return True
