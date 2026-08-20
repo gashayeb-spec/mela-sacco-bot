@@ -9,99 +9,72 @@
 <body>
     <div class="admin-container">
         <h2>መላ SACCO - የአድሚን ፓነል 🛡️</h2>
-        
-        <div class="color-picker-box card">
-            <label>የአድሚን ገጽ የጀርባ ቀለም: <input type="color" id="adminBgColor" value="#1a1a2e" onchange="applyAdminColors()"></label>
-            <label>የጽሁፍ ቀለም: <input type="color" id="adminTextColor" value="#ffffff" onchange="applyAdminColors()"></label>
-        </div>
 
         <div class="role-bar card">
             <label><strong>የአድሚን ክፍል ይምረጡ:</strong></label>
             <select id="adminRole" onchange="switchAdminPanel(this.value)">
-                <option value="GM">GM (ዋና ስራ አስኪያጅ - ሙሉ ቁጥጥር)</option>
-                <option value="LOAN_APPROVER">የብድር ፈቃድ እና ሰነድ አጣሪ ክፍል</option>
-                <option value="LOAN_MANAGER">የብድር ተቆጣጣሪ እና ገንዘብ ለቃቂ ክፍል</option>
-                <option value="FINANCE">የቀን ውሎ እና የገንዘብ ሰበሳቢ ሪፖርት ክፍል</option>
+                <option value="GM">GM (ዋና ስራ አስኪያጅ)</option>
+                <option value="LOAN_APPROVER">የብድር ፈቃድ እና ሰነድ አጣሪ</option>
+                <option value="LOAN_MANAGER">የብድር ተቆጣጣሪ</option>
+                <option value="FINANCE">የገንዘብ ሰበሳቢ</option>
             </select>
         </div>
 
-        <section id="panelApprover" class="card admin-panel-section">
-            <h3>📂 የሰነዶች ማረጋገጫ እና ብድር ፈቃድ ክፍል</h3>
-            <p>እዚህ ክፍል የቀረቡትን የብሔራዊ አይዲ፣ የንግድ ፈቃድ፣ የንግድ ምዝገባ እና የVAT ሰነዶች በመመርመር አፕሩቭ ወይም ብሎክ ይደረጋል።</p>
+        <!-- 1. የቀረቡ ተመዝጋቢዎችን በቅጽበት የሚያሳይ ቴብል -->
+        <section id="panelApprover" class="card">
+            <h3>📂 የተመዝጋቢዎች እና የሰነዶች መቆጣጠሪያ (Live Data)</h3>
             <table>
                 <thead>
                     <tr>
                         <th>መዝገብ ID</th>
                         <th>ስም</th>
-                        <th>TIN / VAT</th>
+                        <th>ስልክ</th>
+                        <th>ሁኔታ</th>
                         <th>እርምጃ</th>
                     </tr>
                 </thead>
-                <tbody id="pendingUsersTable">
-                    <!-- Dynamic Data -->
+                <tbody id="usersTableBody">
+                    <!-- አውቶማቲክ እዚህ ይሞላል -->
                 </tbody>
             </table>
         </section>
 
-        <section id="panelManager" class="card admin-panel-section hidden">
-            <h3>💰 የብድር መቆጣጠሪያ እና ገንዘብ መልሶ መሰብሰቢያ ክፍል</h3>
-            <form id="loanForm" onsubmit="setLoan(event)">
-                <input type="number" id="targetTgId" placeholder="የተጠቃሚው Telegram ID" required>
-                <input type="number" id="loanAmt" placeholder="የሚለቀቀው ብድር መጠን (ETB)" required>
-                <input type="number" id="interestRate" placeholder="የወለድ መጠን (%)" required>
-                <input type="number" id="loanDays" placeholder="የመክፈያ ቀናት ብዛት (Countdown)" required>
-                <button type="submit" class="btn">ገንዘብ ልቀቅ / ብድር መዝግብ</button>
-            </form>
-        </section>
-
-        <section id="panelFinance" class="card admin-panel-section hidden">
-            <h3>📊 የቀን ውሎ እንቅስቃሴ እና የገንዘብ ሰበሳቢ ሪፖርት</h3>
-            <div class="finance-stats">
-                <div class="box"><h4>የዛሬ ገቢ: 0.00 ETB</h4></div>
-                <div class="box"><h4>የተሰበሰበ ብድር: 0.00 ETB</h4></div>
-            </div>
-        </section>
-
+        <!-- 2. የአድሚን ለሌሎች አድሚኖች/ተጠቃሚዎች መልእክት መላኪያ -->
         <section class="card">
-            <h3>💬 የመልእክት መላኪያ (Direct Message & Broadcast)</h3>
-            <select id="msgTarget">
-                <option value="single">ለአንድ ሰው ብቻ (Direct Telegram ID)</option>
-                <option value="all">ለሁሉም ተመዝጋቢዎች (Broadcast)</option>
-                <option value="channel">ለቴሌግራም ቻናል (Channel Post)</option>
-            </select>
-            <input type="number" id="directTgId" placeholder="የተቀባዩ Telegram ID (ለአንድ ሰው ከሆነ)">
-            <textarea id="customMessage" placeholder="መልእክትዎን እዚህ ይጻፉ..."></textarea>
-            <button onclick="sendAdminMessage()" class="btn">መልእክት ላክ</button>
+            <h3>💬 የአድሚኖች እና ተጠቃሚዎች የውስጥ መልእክት ልውውጥ</h3>
+            <input type="number" id="targetTgId" placeholder="የተቀባዩ Telegram ID (የአድሚን ወይም የተመዝጋቢ)">
+            <div class="chat-box" id="chatHistoryBox" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; margin: 10px 0;">
+                <p><em>የተቀባዩን Telegram ID ሲያስገቡ የቆዩ መልእክቶች እዚህ ይታያሉ።</em></p>
+            </div>
+            <textarea id="msgContent" placeholder="መልእክትዎን ይጻፉ..."></textarea>
+            <button onclick="sendInternalMsg()" class="btn">መልእክት ላክ</button>
         </section>
     </div>
 
     <script>
-        function applyAdminColors() {
-            const bg = document.getElementById('adminBgColor').value;
-            const text = document.getElementById('adminTextColor').value;
-            document.body.style.backgroundColor = bg;
-            document.body.style.color = text;
-        }
+        // በየ 3 ሰከንዱ አዲስ መረጃ አውቶማቲክ ማምጫ (Live Sync)
+        setInterval(fetchUsers, 3000);
 
-        function switchAdminPanel(role) {
-            const approver = document.getElementById('panelApprover');
-            const manager = document.getElementById('panelManager');
-            const finance = document.getElementById('panelFinance');
-
-            approver.classList.add('hidden');
-            manager.classList.add('hidden');
-            finance.classList.add('hidden');
-
-            if(role === 'GM') {
-                approver.classList.remove('hidden');
-                manager.classList.remove('hidden');
-                finance.classList.remove('hidden');
-            } else if(role === 'LOAN_APPROVER') {
-                approver.classList.remove('hidden');
-            } else if(role === 'LOAN_MANAGER') {
-                manager.classList.remove('hidden');
-            } else if(role === 'FINANCE') {
-                finance.classList.remove('hidden');
+        async function fetchUsers() {
+            const res = await fetch('/api/admin/get-all-users');
+            const data = await res.json();
+            if (data.status === 'success') {
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '';
+                data.users.forEach(u => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${u.reg_id}</td>
+                            <td>${u.full_name}</td>
+                            <td>${u.phone}</td>
+                            <td><span class="badge">${u.status}</span></td>
+                            <td>
+                                <button onclick="updateStatus(${u.telegram_id}, 'Approved')" class="btn-sm">Approve</button>
+                                <button onclick="updateStatus(${u.telegram_id}, 'Rejected')" class="btn-sm btn-block">Reject</button>
+                            </td>
+                        </tr>
+                    `;
+                });
             }
         }
 
@@ -113,42 +86,31 @@
             });
             const data = await res.json();
             alert(data.message);
+            fetchUsers();
         }
 
-        async function setLoan(e) {
-            e.preventDefault();
-            const data = {
-                telegram_id: document.getElementById('targetTgId').value,
-                amount: document.getElementById('loanAmt').value,
-                interest: document.getElementById('interestRate').value,
-                days: document.getElementById('loanDays').value
-            };
-            const res = await fetch('/api/admin/set-loan', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            const result = await res.json();
-            alert(result.message);
-        }
+        async function sendInternalMsg() {
+            const role = document.getElementById('adminRole').value;
+            const targetId = document.getElementById('targetTgId').value;
+            const msg = document.getElementById('msgContent').value;
 
-        async function sendAdminMessage() {
-            const targetType = document.getElementById('msgTarget').value;
-            const targetId = document.getElementById('directTgId').value;
-            const message = document.getElementById('customMessage').value;
+            if(!targetId || !msg) return alert("እባክዎን የተቀባይ ID እና መልእክት ያስገቡ");
 
-            const res = await fetch('/api/admin/send-message', {
+            const res = await fetch('/api/admin/send-internal-msg', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    target_type: targetType,
+                    sender_role: role,
                     target_id: targetId,
-                    message: message
+                    message: msg
                 })
             });
-            const result = await res.json();
-            alert(result.message);
+            const data = await res.json();
+            alert(data.message);
+            document.getElementById('msgContent').value = '';
         }
+
+        fetchUsers();
     </script>
 </body>
 </html>
