@@ -1,19 +1,21 @@
 import os
 import random
+import asyncio
+import threading
 from flask import Flask, render_template, request, jsonify
 from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
 import database as db
 
-# የተላኩት መረጃዎች እዚህ ጋር ገብተዋል
+# BOT CONFIGURATION
 BOT_TOKEN = "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M"
 SUPER_ADMIN_ID = 5351353727
-WEB_APP_URL = "https://your-domain.com"  # አፕሊኬሽኑን የምትጭንበት የHTTPS domain address
+WEB_APP_URL = "https://your-domain.com"  # የ Render / Server አድራሻህን እዚህ አስገባ
 
 app = Flask(__name__)
 db.init_db(SUPER_ADMIN_ID)
 
-# Telegram Bot Handler
+# Telegram Bot Handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     keyboard = [
@@ -31,7 +33,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
-# Backend API Routes
+# Flask Routes
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -72,12 +74,25 @@ def request_otp():
     db.save_otp(data['telegram_id'], otp)
     return jsonify({"status": "success", "message": "ጊዜያዊ OTP ወደ ዋናው አድሚን ተልኳል::", "otp": otp})
 
-if __name__ == "__main__":
-    import threading
-    def run_bot():
-        telegram_app = Application.builder().token(BOT_TOKEN).build()
-        telegram_app.add_handler(CommandHandler("start", start))
-        telegram_app.run_polling()
+# Telegram Bot በሰው ሰራሽ Event Loop ማስነሻ (Crash እንዳያደርግ)
+def start_bot():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    telegram_app = Application.builder().token(BOT_TOKEN).build()
+    telegram_app.add_handler(CommandHandler("start", start))
+    
+    # Polling ን በራሱ Async Loop ያስነሳዋል
+    loop.run_until_complete(telegram_app.initialize())
+    loop.run_until_complete(telegram_app.start())
+    loop.run_until_complete(telegram_app.updater.start_polling())
+    loop.run_forever()
 
-    threading.Thread(target=run_bot, daemon=True).start()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+if __name__ == "__main__":
+    # የቴሌግራም ቦቱን ለብቻው በ Background Thread ማስነሳት
+    bot_thread = threading.Thread(target=start_bot, daemon=True)
+    bot_thread.start()
+
+    # Render / Cloud Platform የሚሰጠውን PORT መቀበል
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
