@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>መላ ህብረት ስራ ማህበር (Mela SACCO)</title>
+  <title>mela-sacco.com | መላ ህብረት ስራ ማህበር</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -22,74 +22,67 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
-      margin: 0; padding: 24px;
-      transition: background-color 0.3s ease, color 0.3s ease;
+      margin: 0; padding: 15px;
+      display: flex; flex-direction: column; min-height: 100vh;
     }
 
-    /* Full Screen Desktop & Mobile Responsive Container */
-    .container { width: 100%; max-width: 1400px; margin: 0 auto; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; flex: 1; }
+
+    /* Top Website Header */
+    .site-header {
+      text-align: center; border-bottom: 2px solid var(--border-color);
+      padding-bottom: 15px; margin-bottom: 20px;
+    }
+    .domain-title { font-size: 24px; font-weight: 800; color: var(--accent-gold); margin: 0; letter-spacing: 1px; }
+    .company-sub { font-size: 14px; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
+    .version-badge {
+      display: inline-block; background: rgba(59, 130, 246, 0.2); color: var(--primary);
+      padding: 3px 10px; border-radius: 12px; font-size: 11px; margin-top: 8px; font-weight: bold;
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px;
+    }
+    .tab-btn {
+      background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted);
+      padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: bold; white-space: nowrap; transition: 0.2s; font-size: 13px;
+    }
+    .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; }
 
     .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      background: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 14px; padding: 20px; margin-bottom: 15px;
     }
-
-    h1, h2, h3, h4 { margin-top: 0; color: var(--text-main); }
-    p, li { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
 
     .btn {
       background-color: var(--primary); color: white; border: none;
-      padding: 12px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px;
+      padding: 12px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px;
     }
-    .btn:hover { filter: brightness(0.9); }
     .btn-success { background-color: var(--success); }
-    .btn-danger { background-color: var(--danger); }
+    .btn-warning { background-color: var(--accent-gold); color: #000; }
 
-    .input-group { margin-bottom: 14px; }
-    .input-group label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-muted); }
+    .input-group { margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-muted); }
     .input-group input, .input-group textarea {
-      width: 100%; padding: 11px; border-radius: 8px;
-      border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-main);
-      box-sizing: border-box;
+      width: 100%; padding: 10px; border-radius: 8px;
+      border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-main); box-sizing: border-box;
     }
 
-    /* Custom Color Picker Bar */
-    .color-customizer {
-      display: flex; align-items: center; justify-content: flex-end; gap: 16px;
-      margin-bottom: 20px; background: var(--card-bg); padding: 12px 20px;
-      border-radius: 12px; border: 1px solid var(--border-color);
+    /* Accordion / Folders */
+    .accordion { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+    .accordion-header { padding: 14px 18px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; font-size: 14px; }
+    .accordion-body { padding: 16px; display: none; border-top: 1px solid var(--border-color); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .accordion.open .accordion-body { display: block; }
+
+    /* Footer / Developer Credits */
+    .site-footer {
+      border-top: 1px solid var(--border-color); padding: 15px 0 5px 0;
+      text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 30px;
     }
-    .color-picker-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
-    .color-picker-item input[type="color"] {
-      -webkit-appearance: none; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; background: none;
-    }
-    .color-picker-item input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-    .color-picker-item input[type="color"]::-webkit-color-swatch { border: 2px solid #fff; border-radius: 50%; }
-
-    .reset-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
-
-    .countdown-card {
-      background: linear-gradient(135deg, var(--primary), var(--accent-gold));
-      color: white; text-align: center; padding: 24px; border-radius: 16px;
-    }
-    .countdown-card h2 { font-size: 42px; margin: 10px 0; color: white; }
-
-    /* Admin Table Styling */
-    .table-responsive { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px; }
-    th, td { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
-    th { color: var(--text-muted); }
-
-    /* Image Zoom Modal */
-    .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; }
-    .modal img { max-width: 90%; max-height: 90%; border-radius: 12px; transition: transform 0.3s ease; }
-    .modal img:hover { transform: scale(1.2); cursor: zoom-in; }
+    .dev-credit { color: var(--accent-gold); font-weight: bold; margin-top: 4px; }
 
     .hidden { display: none; }
   </style>
@@ -98,123 +91,87 @@
 
 <div class="container">
 
-  <!-- Custom Color Customizer -->
-  <div class="color-customizer">
-    <div class="color-picker-item">
-      <span>🎨 ዋና ቀለም (Primary)፦</span>
-      <input type="color" id="primaryColorPicker" value="#3b82f6" onchange="changePrimaryColor(this.value)">
-    </div>
-    <div class="color-picker-item">
-      <span>🌙 የጀርባ ቀለም (Background)፦</span>
-      <input type="color" id="bgColorPicker" value="#0f172a" onchange="changeBgColor(this.value)">
-    </div>
-    <button class="reset-btn" onclick="resetTheme()">ወደ ነባሪ መልስ</button>
+  <!-- Main Website Header -->
+  <div class="site-header">
+    <div class="domain-title">🌐 www.mela-sacco.com</div>
+    <div class="company-sub">መላ የብድርና ቁጠባ ኃላፊነቱ የተወሰነ የህብረት ስራ ማህበር</div>
+    <div class="version-badge">🔄 System Version: 9.0 (Updated)</div>
   </div>
 
-  <!-- 1. ያልተመዘገቡ አባላትና የዌብሳይት ገጽ (Guest View) -->
-  <div id="guest-view" class="hidden">
+  <!-- Folder Navigation Tabs -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('about-tab')">🏢 ስለ መላ ሳኮ</button>
+    <button class="tab-btn" onclick="switchTab('reg-tab')">📝 የአባልነት ምዝገባ</button>
+    <button class="tab-btn" onclick="switchTab('guarantor-tab')">🤝 የዋስትና ሰነድ</button>
+    <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab')">⚙️ አድሚን ፓናል</button>
+  </div>
+
+  <!-- TAB 1: About Section -->
+  <div id="about-tab" class="tab-content">
     <div class="card">
-      <h2>🏥 እንኳን ወደ መላ ህብረት ስራ ማህበር (Mela SACCO) በደህና መጡ!</h2>
-      <p>መላ ሳኮ ለአባላቱ ዘመናዊ፣ አስተማማኝና የተቀላጠፈ የቁጠባ፣ የብድርና የኢንቨስትመንት አገልግሎቶችን የሚያቀርብ ዲጂታል ሲስተም ነው።</p>
+      <h3>እንኳን ወደ mela-sacco.com በደህና መጡ!</h3>
+      <p>መላ ሳኮ የኃላፊነቱ የተወሰነ ህብረት ስራ ማህበር ሲሆን፣ አባላቱን በዲጂታል ቴክኖሎጂ የተደገፈ የቁጠባና የብድር አገልግሎት ይሰጣል።</p>
     </div>
 
-    <!-- ስለ ድርጅቱ ዝርዝር መረጃዎች (Full Web Page View) -->
-    <div class="grid-3">
-      <div class="card">
-        <h3>📜 የብድር ዓይነቶች</h3>
-        <ul>
-          <li><b>የአጭር ጊዜ ብድር፦</b> እስከ 3 ወር የሚቆይ ለአስቸኳይ የካፒታል ፍላጎቶች።</li>
-          <li><b>የረጅም ጊዜ የንግድ ማስፋፊያ፦</b> እስከ ቁጠባዎ 3 እጥፍ የሚፈቀድና እስከ 12 ወር የሚከፈልበት።</li>
-          <li><b>የአስቸኳይ ጊዜ ብድር፦</b> በ12 ሰዓታት ውስጥ የሚፈቀድ አጭር ጊዜ ብድር።</li>
-        </ul>
-      </div>
-
-      <div class="card">
-        <h3>💰 የቁጠባ ስርዓት</h3>
-        <ul>
-          <li><b>መደበኛ ወርሃዊ ቁጠባ፦</b> አባላት በየወሩ በቋሚነት የሚያስቀምጡት የቁጠባ መጠን።</li>
-          <li><b>የፍቃደኝነት ቁጠባ፦</b> አባላት በማንኛውም ጊዜ ተጨማሪ ገንዘብ በመቆጠብ የብድር ብቁነታቸውን የሚያሳድጉበት።</li>
-        </ul>
-      </div>
-
-      <div class="card">
-        <h3>📈 የአክሲዮን ድርሻ</h3>
-        <ul>
-          <li><b>የአክሲዮን ግዢ፦</b> እያንዳንዱ አባል የድርጅቱ ባለቤት እንዲሆን የሚያስችለው ድርሻ።</li>
-          <li><b>የትርፍ ክፍፍል፦</b> በየዓመቱ ከድርጅቱ የተጣራ ትርፍ ላይ በአክሲዮን ድርሻ መጠን የሚከፈል ትርፍ።</li>
-        </ul>
+    <div class="accordion" onclick="toggleAccordion(this)">
+      <div class="accordion-header"><span>🎯 የድርጅቱ ዓላማና ግብ (Mission & Vision)</span> <span>▼</span></div>
+      <div class="accordion-body">
+        <p><b>ዓላማችን፦</b> የአባላቶቻችንን የቁጠባ ባህል ማሳደግ፣ አነስተኛና መካከለኛ ንግዶችን በብድር ማጠናከር ነው።</p>
+        <p><b>ግባችን፦</b> በቴክኖሎጂ የተደገፈ ግልጽ፣ ፈጣን እና ደህንነቱ የተጠበቀ የብድርና ቁጠባ ስርዓት መዘርጋት ነው።</p>
       </div>
     </div>
 
-    <!-- የአባልነት መመዝገቢያ ቅጽ -->
-    <div class="card">
+    <div class="accordion" onclick="toggleAccordion(this)">
+      <div class="accordion-header"><span>📜 የብድር ዓይነቶች (Loan Services)</span> <span>▼</span></div>
+      <div class="accordion-body">
+        <ul>
+          <li><b>የአጭር ጊዜ ብድር፦</b> እስከ 3 ወር የሚቆይ ለአስቸኳይ ካፒታል ፍላጎቶች።</li>
+          <li><b>የንግድ ማስፋፊያ ብድር፦</b> እስከ ቁጠባዎ 3 እጥፍ የሚፈቀድና እስከ 12 ወር የሚከፈልበት።</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Registration -->
+  <div id="reg-tab" class="tab-content hidden">
+    <div class="card" style="max-width: 500px; margin: 0 auto;">
       <h3>📝 የአባልነት መመዝገቢያ ቅጽ</h3>
+      <div class="input-group"><label>ሙሉ ስም</label><input type="text" id="reg-name" placeholder="ሙሉ ስም ያስገቡ"></div>
+      <div class="input-group"><label>ስልክ ቁጥር (09/07)</label><input type="text" id="reg-phone" placeholder="09xxxxxxxx"></div>
+      <div class="input-group"><label>TIN ቁጥር</label><input type="text" id="reg-tin" placeholder="የቲን ቁጥር"></div>
+      <div class="input-group"><label>VAT ቁጥር (ካለዎት)</label><input type="text" id="reg-vat" placeholder="የቫት ቁጥር"></div>
+      <div class="input-group"><label>የንግድ ፈቃድ (Image)</label><input type="file" id="reg-license-file" accept="image/*"></div>
+      <button class="btn btn-success" onclick="submitRegistration()">📩 ማመልከቻ ላክ</button>
+    </div>
+  </div>
+
+  <!-- TAB 3: Guarantor -->
+  <div id="guarantor-tab" class="tab-content hidden">
+    <div class="card" style="max-width: 500px; margin: 0 auto;">
+      <h3>🤝 የዋስትና እና የቼክ ሰነድ</h3>
+      <div class="input-group"><label>የአባልነት መዝገብ ቁጥር (Member ID)</label><input type="text" id="guar-member-id" placeholder="የመዝገብ ቁጥርዎ"></div>
+      <div class="input-group"><label>የተበዳሪው ቼክ ቁጥር</label><input type="text" id="guar-user-check" placeholder="የእርስዎ ቼክ ቁጥር"></div>
+      <div class="input-group"><label>የዋስ ሙሉ ስም</label><input type="text" id="guar-name" placeholder="የዋስ ስም"></div>
+      <div class="input-group"><label>የዋስ ስልክ ቁጥር (09/07)</label><input type="text" id="guar-phone" placeholder="09xxxxxxxx"></div>
+      <div class="input-group"><label>የዋሱ ቼክ ቁጥር</label><input type="text" id="guar-check" placeholder="የዋሱ ቼክ ቁጥር"></div>
+      <button class="btn btn-warning" onclick="submitGuarantorDoc()">📩 የዋስትና ሰነድ ላክ</button>
+    </div>
+  </div>
+
+  <!-- TAB 4: Admin Panel -->
+  <div id="admin-tab" class="tab-content hidden">
+    <div class="card" style="border: 2px solid var(--accent-gold);">
+      <h3>⚙️ የአድሚን መቆጣጠሪያ ፓናል</h3>
       <div class="grid-2">
         <div>
-          <h4>👤 የግልና ንግድ መረጃ</h4>
-          <div class="input-group"><label>ሙሉ ስም</label><input type="text" id="reg-name" placeholder="ሙሉ ስም ያስገቡ"></div>
-          <div class="input-group"><label>ስልክ ቁጥር</label><input type="text" id="reg-phone" placeholder="09xxxxxxxx"></div>
-          <div class="input-group"><label>TIN ቁጥር</label><input type="text" id="reg-tin" placeholder="የቲን ቁጥር"></div>
-          <div class="input-group"><label>የተበዳሪው/የእርስዎ ቼክ ቁጥር</label><input type="text" id="reg-user-check" placeholder="የቼክ ቁጥር"></div>
+          <div class="input-group"><label>የአባሉ ID</label><input type="number" id="adm-target-id" placeholder="Telegram ID"></div>
+          <div class="input-group"><label>የሚጨመር ቁጠባ</label><input type="number" id="adm-savings" placeholder="0.00"></div>
+          <div class="input-group"><label>የተፈቀደ ብድር</label><input type="number" id="adm-loan" placeholder="0.00"></div>
+          <button class="btn" onclick="updateUserAccount()">✅ አዘምን</button>
         </div>
-
         <div>
-          <h4>🤝 የዋስ እና የሰነድ መረጃ</h4>
-          <div class="input-group"><label>የዋስ ሙሉ ስም</label><input type="text" id="reg-guarantor-name" placeholder="የዋስ ስም"></div>
-          <div class="input-group"><label>የዋስ ስልክ ቁጥር</label><input type="text" id="reg-guarantor-phone" placeholder="09xxxxxxxx"></div>
-          <div class="input-group"><label>የዋሱ ቼክ ቁጥር</label><input type="text" id="reg-guarantor-check" placeholder="የዋሱ ቼክ ቁጥር"></div>
-          <div class="input-group"><label>የንግድ ፈቃድ (ፎቶ/File Attachment)</label><input type="file" id="reg-license-file" accept="image/*"></div>
-        </div>
-      </div>
-      <button class="btn btn-success" style="width:100%; margin-top:15px;" onclick="submitRegistration()">📩 ማመልከቻ ላክ</button>
-    </div>
-  </div>
-
-  <!-- 2. የጸደቀላቸው አባላት ገጽ (Approved User View) -->
-  <div id="user-view" class="hidden">
-    <div class="grid-2">
-      <div class="card countdown-card">
-        <span>የብድር መክፈያ ቀሪ ቀናት</span>
-        <h2 id="user-days-left">0</h2>
-        <span>ቀናት ቀርበዋል</span>
-      </div>
-
-      <div class="card">
-        <h3>📊 የሂሳብዎ ሁኔታ</h3>
-        <p>💰 <b>ጠቅላላ ቁጠባ፦</b> <span id="user-savings">0</span> ETB</p>
-        <p>💳 <b>የተፈቀደ ብድር፦</b> <span id="user-loan">0</span> ETB</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. የአድሚን መቆጣጠሪያ ፓናል (Admin Dashboard View) -->
-  <div id="admin-view" class="hidden">
-    <div class="card" style="border: 2px solid var(--accent-gold);">
-      <h2>⚙️ የአድሚን መቆጣጠሪያ ፓናል (Admin Dashboard)</h2>
-      <p>እዚህ ጋር የተመዘገቡ አባላትን መረጃ መመርመር፣ ዶክመንት Zoom አድርጎ ማየት፣ ማጽደቅ ወይም በቀጥታ መነጋገር ይችላሉ።</p>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <h3>💳 ቁጠባ፣ ብድርና የቀን ቆጣሪ ማስተካከያ</h3>
-        <div class="input-group"><label>የአባሉ Telegram ID</label><input type="number" id="adm-target-id" placeholder="ለምሳሌ፦ 5351353727"></div>
-        <div class="input-group"><label>የሚጨመር ቁጠባ (ETB)</label><input type="number" id="adm-savings" placeholder="0.00"></div>
-        <div class="input-group"><label>የተፈቀደ ብድር (ETB)</label><input type="number" id="adm-loan" placeholder="0.00"></div>
-        <div class="input-group"><label>የብድር መክፈያ ቀናት (Countdown Days)</label><input type="number" id="adm-days" placeholder="ለምሳሌ፦ 30"></div>
-        <button class="btn" style="width:100%;" onclick="updateUserAccount()">✅ መረጃውን አዘምን</button>
-      </div>
-
-      <div>
-        <div class="card">
-          <h3>👑 አዲስ አድሚን መሾሚያ</h3>
-          <div class="input-group"><label>የአዲሱ አድሚን Telegram ID</label><input type="number" id="adm-new-id" placeholder="ID ያስገቡ"></div>
-          <button class="btn" style="width:100%;" onclick="addNewAdmin()">➕ አድሚን አድርግ</button>
-        </div>
-
-        <div class="card">
-          <h3>📢 ለአባላት በሙሉ ማስታወቂያ መላኪያ</h3>
-          <div class="input-group"><label>የማስታወቂያ መልእክት</label><textarea id="adm-broadcast-msg" rows="3" placeholder="ማስታወቂያ እዚህ ይፃፉ..."></textarea></div>
-          <button class="btn" style="width:100%;" onclick="sendBroadcast()">🚀 ማስታወቂያ ላክ</button>
+          <div class="input-group"><label>ማስታወቂያ መላኪያ</label><textarea id="adm-broadcast-msg" rows="4" placeholder="ማስታወቂያ..."></textarea></div>
+          <button class="btn" onclick="sendBroadcast()">🚀 ማስታወቂያ ላክ</button>
         </div>
       </div>
     </div>
@@ -222,87 +179,34 @@
 
 </div>
 
-<!-- Modal Image Zoom Viewer -->
-<div id="imgModal" class="modal" onclick="closeModal()">
-  <img id="modalImg" src="">
+<!-- Footer with Owner Copyright and Developer Credits -->
+<div class="site-footer">
+  <div>© 2026 mela-sacco.com® - መላ የብድርና ቁጠባ ኃላፊነቱ የተወሰነ የህብረት ስራ ማህበር። መብቱ በህግ የተጠበቀ ነው።</div>
+  <div class="dev-credit">💻 የሶፍትዌር አበልጻጊ፦ ጋሻዬ በእጅጉ (Developer: Gashaye Bejigu) ®</div>
 </div>
 
 <script>
   const tg = window.Telegram.WebApp;
   tg.expand();
 
-  // Custom Dynamic Color Functions
-  function changePrimaryColor(color) {
-    document.documentElement.style.setProperty('--primary', color);
-    localStorage.setItem('mela_primary_color', color);
-  }
-
-  function changeBgColor(color) {
-    document.documentElement.style.setProperty('--bg-color', color);
-    document.documentElement.style.setProperty('--card-bg', adjustColorBrightness(color, 15));
-    localStorage.setItem('mela_bg_color', color);
-  }
-
-  function resetTheme() {
-    document.documentElement.style.removeProperty('--primary');
-    document.documentElement.style.removeProperty('--bg-color');
-    document.documentElement.style.removeProperty('--card-bg');
-    localStorage.removeItem('mela_primary_color');
-    localStorage.removeItem('mela_bg_color');
-    document.getElementById('primaryColorPicker').value = '#3b82f6';
-    document.getElementById('bgColorPicker').value = '#0f172a';
-  }
-
-  function adjustColorBrightness(col, amt) {
-    let usePound = false;
-    if (col[0] == "#") { col = col.slice(1); usePound = true; }
-    let num = parseInt(col, 16);
-    let r = (num >> 16) + amt; if (r > 255) r = 255; else if (r < 0) r = 0;
-    let b = ((num >> 8) & 0x00FF) + amt; if (b > 255) b = 255; else if (b < 0) b = 0;
-    let g = (num & 0x0000FF) + amt; if (g > 255) g = 255; else if (g < 0) g = 0;
-    return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16);
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    const savedPrimary = localStorage.getItem('mela_primary_color');
-    const savedBg = localStorage.getItem('mela_bg_color');
-    if (savedPrimary) {
-      changePrimaryColor(savedPrimary);
-      document.getElementById('primaryColorPicker').value = savedPrimary;
-    }
-    if (savedBg) {
-      changeBgColor(savedBg);
-      document.getElementById('bgColorPicker').value = savedBg;
-    }
-  });
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const startParam = urlParams.get('tgWebAppStartParam');
-
-  let userData = { status: 'NotRegistered', savings: 0, loan: 0, daysLeft: 0 };
-
-  if (startParam) {
-    try {
-      const decoded = atob(startParam);
-      userData = JSON.parse(decoded);
-    } catch(e) {
-      console.error("Error parsing start param:", e);
-    }
-  }
-
   const currentUserId = tg.initDataUnsafe?.user?.id;
   const ADMIN_ID = 5351353727;
 
   if (currentUserId === ADMIN_ID) {
-    document.getElementById('admin-view').classList.remove('hidden');
-    document.getElementById('guest-view').classList.remove('hidden');
-  } else if (userData.status === 'Approved') {
-    document.getElementById('user-view').classList.remove('hidden');
-    document.getElementById('user-savings').innerText = userData.savings;
-    document.getElementById('user-loan').innerText = userData.loan;
-    document.getElementById('user-days-left').innerText = userData.daysLeft;
-  } else {
-    document.getElementById('guest-view').classList.remove('hidden');
+    document.getElementById('admin-tab-btn').classList.remove('hidden');
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.remove('hidden');
+    event.target.classList.add('active');
+  }
+
+  function toggleAccordion(element) { element.classList.toggle('open'); }
+
+  function validateEthiopianPhone(phone) {
+    return /^(09|07)\d{8}$/.test(phone);
   }
 
   function getBase64(file) {
@@ -318,76 +222,46 @@
     const fullName = document.getElementById('reg-name').value;
     const phone = document.getElementById('reg-phone').value;
     const tin = document.getElementById('reg-tin').value;
-    const userCheck = document.getElementById('reg-user-check').value;
-    const gName = document.getElementById('reg-guarantor-name').value;
-    const gPhone = document.getElementById('reg-guarantor-phone').value;
-    const gCheck = document.getElementById('reg-guarantor-check').value;
+    const vat = document.getElementById('reg-vat').value;
     const fileInput = document.getElementById('reg-license-file').files[0];
 
-    if (!fullName || !phone) {
-      alert("እባክዎን ስምና ስልክ ቁጥር ያስገቡ!");
-      return;
-    }
+    if (!fullName || !phone || !tin) return alert("እባክዎን ስም፣ ስልክና ቲን ቁጥር ያስገቡ!");
+    if (!validateEthiopianPhone(phone)) return alert("⚠️ እባክዎን በ 09 ወይም 07 የሚጀምር 10 ዲጂት ስልክ ቁጥር ያስገቡ!");
 
-    let fileBase64 = "";
-    if (fileInput) {
-      fileBase64 = await getBase64(fileInput);
-    }
+    let fileBase64 = fileInput ? await getBase64(fileInput) : "";
 
     tg.sendData(JSON.stringify({
-      action: "register",
-      fullName: fullName,
-      phone: phone,
-      tin: tin,
-      userCheck: userCheck,
-      guarantorName: gName,
-      guarantorPhone: gPhone,
-      guarantorCheck: gCheck,
-      licenseImg: fileBase64
+      action: "register", fullName: fullName, phone: phone, tin: tin, vat: vat, licenseImg: fileBase64
+    }));
+  }
+
+  async function submitGuarantorDoc() {
+    const memberId = document.getElementById('guar-member-id').value;
+    const userCheck = document.getElementById('guar-user-check').value;
+    const gName = document.getElementById('guar-name').value;
+    const gPhone = document.getElementById('guar-phone').value;
+    const gCheck = document.getElementById('guar-check').value;
+
+    if (!memberId || !userCheck || !gName || !gPhone) return alert("እባክዎን ሁሉንም መረጃዎች ይሙሉ!");
+    if (!validateEthiopianPhone(gPhone)) return alert("⚠️ የዋስ ስልክ ቁጥር በ 09 ወይም 07 መጀመር አለበት!");
+
+    tg.sendData(JSON.stringify({
+      action: "submit_guarantor", memberId: memberId, userCheck: userCheck, guarantorName: gName, guarantorPhone: gPhone, guarantorCheck: gCheck
     }));
   }
 
   function updateUserAccount() {
     const targetUser = document.getElementById('adm-target-id').value;
-    const savings = document.getElementById('adm-savings').value || 0;
-    const loan = document.getElementById('adm-loan').value || 0;
-    const days = document.getElementById('adm-days').value || 0;
-
-    if (!targetUser) {
-      alert("እባክዎን የአባሉን Telegram ID ያስገቡ!");
-      return;
-    }
-
+    if (!targetUser) return alert("የአባሉን ID ያስገቡ!");
     tg.sendData(JSON.stringify({
-      action: "update_account",
-      targetUser: targetUser,
-      savings: savings,
-      loan: loan,
-      days: days
+      action: "update_account", targetUser: targetUser, savings: document.getElementById('adm-savings').value || 0, loan: document.getElementById('adm-loan').value || 0
     }));
-  }
-
-  function addNewAdmin() {
-    const newAdminId = document.getElementById('adm-new-id').value;
-    if (!newAdminId) return alert("ID ያስገቡ");
-
-    tg.sendData(JSON.stringify({ action: "add_admin", newAdminId: newAdminId }));
   }
 
   function sendBroadcast() {
     const msg = document.getElementById('adm-broadcast-msg').value;
     if (!msg) return alert("መልእክት ያስገቡ");
-
     tg.sendData(JSON.stringify({ action: "broadcast", message: msg }));
-  }
-
-  function zoomImage(src) {
-    document.getElementById('modalImg').src = src;
-    document.getElementById('imgModal').style.display = 'flex';
-  }
-
-  function closeModal() {
-    document.getElementById('imgModal').style.display = 'none';
   }
 </script>
 
