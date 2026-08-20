@@ -8,33 +8,35 @@
     <style>
         :root { --primary: #0d5c3a; --accent: #e6a100; --bg: #f4f6f9; --card-bg: #ffffff; --text: #1f2937; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 15px; }
-        .container { max-width: 800px; margin: 0 auto; }
+        body { background-color: var(--bg); color: var(--text); padding: 12px; }
+        .container { max-width: 600px; margin: 0 auto; }
         
-        .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .theme-picker { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 0.9rem; }
-        .color-input { border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 10px 15px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .card { background: var(--card-bg); border-radius: 14px; padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h2 { color: var(--primary); font-size: 1.1rem; margin-bottom: 12px; border-bottom: 2px solid var(--accent); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
 
-        .card { background: var(--card-bg); border-radius: 14px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-        h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid var(--accent); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .admin-switch { display: none; background: #e0f2fe; padding: 8px; border-radius: 8px; margin-bottom: 12px; text-align: center; border: 1px solid #bae6fd; }
+        .switch-btn { background: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem; margin: 0 4px; }
+        .switch-btn.active { background: #0369a1; border: 2px solid #38bdf8; }
 
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 15px; }
-        .dash-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; text-align: center; }
-        .dash-box h4 { font-size: 0.8rem; color: #64748b; margin-bottom: 5px; }
-        .dash-box p { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .dash-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 10px; text-align: center; }
+        .dash-box h4 { font-size: 0.75rem; color: #64748b; margin-bottom: 4px; }
+        .dash-box p { font-size: 1rem; font-weight: bold; color: var(--primary); }
 
-        .countdown-card { background: linear-gradient(135deg, #0d5c3a, #15803d); color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 15px; }
-        .countdown-card p { font-size: 0.9rem; opacity: 0.9; }
-        .countdown-card h3 { font-size: 1.8rem; margin: 5px 0; font-weight: 800; }
+        .countdown-card { background: linear-gradient(135deg, #0d5c3a, #15803d); color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 12px; }
+        .countdown-card h3 { font-size: 1.6rem; margin: 4px 0; font-weight: 800; }
 
-        .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85rem; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; }
-        .btn { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        .form-group { margin-bottom: 10px; text-align: left; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.8rem; }
+        input, select, textarea { width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; }
+        .btn { background: var(--primary); color: white; border: none; padding: 11px; width: 100%; border-radius: 8px; font-size: 0.95rem; font-weight: bold; cursor: pointer; margin-top: 6px; }
 
-        .admin-badge { background: #dc2626; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
-        .tab-btn { background: none; border: none; padding: 6px 12px; font-weight: bold; cursor: pointer; color: #666; }
+        .status-box { text-align: center; padding: 20px 10px; }
+        .status-icon { font-size: 2.5rem; margin-bottom: 8px; }
+        
+        .tabs { display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+        .tab-btn { background: none; border: none; padding: 6px 10px; font-weight: bold; cursor: pointer; color: #666; font-size: 0.85rem; }
         .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
     </style>
 </head>
@@ -42,64 +44,68 @@
 
 <div class="container">
     <div class="top-bar">
-        <div class="theme-picker">
-            <span>🎨 Theme:</span>
-            <input type="color" class="color-input" value="#f4f6f9" onchange="document.body.style.backgroundColor=this.value">
-        </div>
-        <button onclick="toggleLang()" id="langBtn" style="background:var(--primary); color:white; border:none; padding:6px 14px; border-radius:20px; font-weight:bold; cursor:pointer;">EN</button>
+        <h3 style="color:var(--primary); font-size:1rem;">መላ ሳኮ (Mela SACCO)</h3>
+        <button onclick="toggleLang()" id="langBtn" style="background:var(--primary); color:white; border:none; padding:4px 12px; border-radius:15px; font-weight:bold; cursor:pointer;">EN</button>
     </div>
 
-    <!-- 1. የአባላት መረጃና የብድር የቀን ቆጣሪ ዳሽቦርድ -->
-    <div class="card" id="user-portal">
-        <h2 id="txt-portal-title">የአባልነት ዳሽቦርድ 📊</h2>
-        
+    <!-- ለአድሚኑ ብቻ የሚታይ View Switcher -->
+    <div class="admin-switch" id="admin-view-switcher">
+        <span style="font-size:0.8rem; font-weight:bold; color:#0369a1;">የገጽ እይታ ይምረጡ፦ </span>
+        <button class="switch-btn active" onclick="showView('user')">👁 የአባል ገጽ</button>
+        <button class="switch-btn" onclick="showView('admin')">👑 የአድሚን ፓናል</button>
+    </div>
+
+    <!-- 1. ያልተመዘገቡ ሰዎች ቅጽ -->
+    <div class="card" id="registration-section">
+        <h2>የአባልነት መመዝገቢያ ቅጽ 📝</h2>
+        <form onsubmit="handleRegistration(event)">
+            <div class="form-group"><label>ሙሉ ስም *</label><input type="text" id="fullname" required></div>
+            <div class="form-group"><label>ስልክ ቁጥር *</label><input type="tel" id="phone" required></div>
+            <div class="form-group"><label>የቲን ቁጥር *</label><input type="text" id="tin" required></div>
+            <div class="form-group"><label>የንግድ ፈቃድ ፎቶ *</label><input type="file" id="doc-license" accept="image/*" required></div>
+            <div class="form-group"><label>የመታወቂያ ፎቶ *</label><input type="file" id="doc-id" accept="image/*" required></div>
+            <div class="form-group"><label>የጉርድ ፎቶ *</label><input type="file" id="doc-photo" accept="image/*" required></div>
+            <button type="submit" class="btn" id="reg-btn">አባል ለመሆን ማመልከቻ ላክ</button>
+        </form>
+    </div>
+
+    <!-- 2. ጥበቃ ገጽ (Pending) -->
+    <div class="card" id="pending-section" style="display:none;">
+        <div class="status-box">
+            <div class="status-icon">⏳</div>
+            <h2>ማመልከቻዎ በእንቅስቃሴ ላይ ነው!</h2>
+            <p style="color:#666; margin-top:8px; font-size:0.85rem;">የያስገቡት መረጃ በአድሚኖች እየተመረመረ ይገኛል። ማመልከቻዎ አፕሩቭ ሲደረግ ሙሉ የብድርና ቁጠባ ዳሽቦርዱ ይከፈታል።</p>
+        </div>
+    </div>
+
+    <!-- 3. የአባላት ዳሽቦርድ (Approved) -->
+    <div class="card" id="user-portal" style="display:none;">
+        <h2>የአባልነት ዳሽቦርድ 📊</h2>
         <div class="countdown-card">
-            <p id="txt-loan-title">የብድር መክፈያ የቀረው ጊዜ</p>
-            <h3 id="loan-countdown">-- ቀን</h3>
-            <p id="loan-details">መመለስ ያለበት ብር፦ 0.00 ETB</p>
+            <p style="font-size:0.85rem;">የብድር መክፈያ የቀረው ጊዜ</p>
+            <h3 id="loan-countdown">0 ቀን</h3>
+            <p id="loan-details" style="font-size:0.85rem;">መመለስ ያለበት ብር፦ 0.00 ETB</p>
         </div>
-
         <div class="dashboard-grid">
-            <div class="dash-box">
-                <h4 id="lbl-saving">ጠቅላላ ቁጠባ</h4>
-                <p id="val-saving">0 ETB</p>
-            </div>
-            <div class="dash-box">
-                <h4 id="lbl-eligibility">የብድር ብቁነት</h4>
-                <p id="val-eligibility">0 ETB</p>
-            </div>
-            <div class="dash-box">
-                <h4 id="lbl-status">የአባልነት ደረጃ</h4>
-                <p id="val-status" style="color:#d97706;">Pending</p>
-            </div>
+            <div class="dash-box"><h4>ጠቅላላ ቁጠባ</h4><p id="val-saving">0 ETB</p></div>
+            <div class="dash-box"><h4>የብድር ብቁነት</h4><p id="val-eligibility">0 ETB</p></div>
+        </div>
+        <div class="dash-box" style="margin-top:8px;">
+            <h4>የአባልነት ደረጃ</h4>
+            <p style="color:#16a34a;">Approved ✅</p>
         </div>
     </div>
 
-    <!-- 2. የአድሚን ሙሉ መቆጣጠሪያ (ለአድሚን ብቻ የሚታይ) -->
+    <!-- 4. የአድሚን መቆጣጠሪያ ፓናል -->
     <div class="card" id="admin-panel" style="display:none;">
-        <h2><span>የአድሚን መቆጣጠሪያ</span> <span class="admin-badge">ADMIN</span></h2>
+        <h2><span>የአድሚን መቆጣጠሪያ</span> <span style="background:#dc2626; color:white; padding:2px 6px; border-radius:4px; font-size:0.65rem;">ADMIN</span></h2>
         
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('tab-reg')">አባል መመዝገብ</button>
-            <button class="tab-btn" onclick="switchTab('tab-loan')">ብድር & ቁጠባ</button>
+            <button class="tab-btn active" onclick="switchTab('tab-loan')">ብድር & ቁጠባ</button>
             <button class="tab-btn" onclick="switchTab('tab-settings')">ሴቲንግ & አድሚን</button>
         </div>
 
-        <!-- Tab 1: አባል መመዝገብ -->
-        <div id="tab-reg">
-            <form onsubmit="handleRegistration(event)">
-                <div class="form-group"><label>ሙሉ ስም *</label><input type="text" id="fullname" required></div>
-                <div class="form-group"><label>ስልክ ቁጥር *</label><input type="tel" id="phone" required></div>
-                <div class="form-group"><label>የቲን ቁጥር *</label><input type="text" id="tin" required></div>
-                <div class="form-group"><label>የንግድ ፈቃድ ፎቶ *</label><input type="file" id="doc-license" accept="image/*" required></div>
-                <div class="form-group"><label>የመታወቂያ ፎቶ *</label><input type="file" id="doc-id" accept="image/*" required></div>
-                <div class="form-group"><label>የጉርድ ፎቶ *</label><input type="file" id="doc-photo" accept="image/*" required></div>
-                <button type="submit" class="btn" id="reg-btn">ማመልከቻውን ላክ</button>
-            </form>
-        </div>
-
-        <!-- Tab 2: ብድር እና ቁጠባ ማስተካከያ -->
-        <div id="tab-loan" style="display:none;">
+        <div id="tab-loan">
             <div class="form-group"><label>የአባል Telegram ID</label><input type="number" id="target-user-id" placeholder="የአባሉን ID ያስገቡ"></div>
             <div class="form-group"><label>የቁጠባ መጠን ይጨምሩ (ETB)</label><input type="number" id="add-savings" placeholder="ለምሳሌ፦ 5000"></div>
             <div class="form-group"><label>የተፈቀደ ብድር መጠን (ETB)</label><input type="number" id="set-loan-amount" placeholder="ለምሳሌ፦ 20000"></div>
@@ -107,14 +113,12 @@
             <button type="button" class="btn" onclick="updateUserAccount()">መረጃውን ዘምን</button>
         </div>
 
-        <!-- Tab 3: አዲስ አድሚን መሾም & የወለድ ሴቲንግ -->
         <div id="tab-settings" style="display:none;">
-            <div class="form-group"><label>አዲስ አድሚን ለመሾም (Telegram ID)</label><input type="number" id="new-admin-id" placeholder="አዲሱን የአድሚን ID ያስገቡ"></div>
+            <div class="form-group"><label>አዲስ አድሚን ለመሾም (Telegram ID)</label><input type="number" id="new-admin-id" placeholder="አዲሱን ID ያስገቡ"></div>
             <button type="button" class="btn" style="background:#2563eb;" onclick="addNewAdmin()">አዲስ አድሚን ሹም</button>
-            <hr style="margin:15px 0;">
-            <div class="form-group"><label>የማህበሩ ዓመታዊ የወለድ መጠን (%)</label><input type="number" id="interest-rate" value="8"></div>
-            <div class="form-group"><label>ለአባላትና አክሲዮን ባለድርሻዎች ማስታወቂያ ይጻፉ</label><textarea id="broadcast-msg" rows="3"></textarea></div>
-            <button type="button" class="btn" style="background:#059669;" onclick="sendBroadcast()">ማስታወቂያውን አስተላልፍ</button>
+            <hr style="margin:12px 0;">
+            <div class="form-group"><label>ለአባላት ማስታወቂያ ይጻፉ</label><textarea id="broadcast-msg" rows="3"></textarea></div>
+            <button type="button" class="btn" style="background:#059669;" onclick="sendBroadcast()">ማስታወቂያ አስተላልፍ</button>
         </div>
     </div>
 </div>
@@ -124,27 +128,61 @@
     if (tg) { tg.ready(); tg.expand(); }
 
     const ADMIN_ID = 5351353727;
-    let isAmharic = true;
+    let currentUserStatus = 'NotRegistered';
 
-    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        if (tg.initDataUnsafe.user.id === ADMIN_ID) {
+    // ከቦቱ የደረሰ ዳታ ካለ መቀበል
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+        try {
+            const rawData = atob(tg.initDataUnsafe.start_param);
+            const userData = JSON.parse(rawData);
+            renderUserData(userData);
+        } catch(e) {}
+    }
+
+    function renderUserData(data) {
+        currentUserStatus = data.status || 'NotRegistered';
+        
+        document.getElementById('registration-section').style.display = 'none';
+        document.getElementById('pending-section').style.display = 'none';
+        document.getElementById('user-portal').style.display = 'none';
+
+        if (currentUserStatus === 'Approved') {
+            document.getElementById('user-portal').style.display = 'block';
+            document.getElementById('val-saving').innerText = (data.savings || 0) + " ETB";
+            document.getElementById('val-eligibility').innerText = ((data.savings || 0) * 3) + " ETB";
+            document.getElementById('loan-countdown').innerText = (data.daysLeft || 0) + " ቀን";
+            document.getElementById('loan-details').innerText = "መመለስ ያለበት ብር፦ " + (data.loan || 0) + " ETB";
+        } else if (currentUserStatus === 'Pending') {
+            document.getElementById('pending-section').style.display = 'block';
+        } else {
+            document.getElementById('registration-section').style.display = 'block';
+        }
+
+        // አድሚን መሆኑን ማረጋገጥ
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === ADMIN_ID) {
+            document.getElementById('admin-view-switcher').style.display = 'block';
+        }
+    }
+
+    function showView(viewType) {
+        document.querySelectorAll('.switch-btn').forEach(b => b.classList.remove('active'));
+        if (viewType === 'admin') {
+            event.target.classList.add('active');
+            document.getElementById('registration-section').style.display = 'none';
+            document.getElementById('pending-section').style.display = 'none';
+            document.getElementById('user-portal').style.display = 'none';
             document.getElementById('admin-panel').style.display = 'block';
+        } else {
+            event.target.classList.add('active');
+            document.getElementById('admin-panel').style.display = 'none';
+            renderUserData({ status: currentUserStatus });
         }
     }
 
     function switchTab(tabId) {
-        document.getElementById('tab-reg').style.display = 'none';
         document.getElementById('tab-loan').style.display = 'none';
         document.getElementById('tab-settings').style.display = 'none';
         document.getElementById(tabId).style.display = 'block';
-    }
-
-    function toggleLang() {
-        isAmharic = !isAmharic;
-        document.getElementById('langBtn').innerText = isAmharic ? "EN" : "AM";
-        document.getElementById('txt-portal-title').innerText = isAmharic ? "የአባልነት ዳሽቦርድ 📊" : "Member Dashboard 📊";
-        document.getElementById('lbl-saving').innerText = isAmharic ? "ጠቅላላ ቁጠባ" : "Total Savings";
-        document.getElementById('lbl-eligibility').innerText = isAmharic ? "የብድር ብቁነት" : "Loan Eligibility";
     }
 
     function compressImg(file) {
