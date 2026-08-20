@@ -6,7 +6,7 @@ from flask import Flask
 from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-# --- 1. Render የ Port Scan ስህተት እንዳያሳይ የ Flask ሰርቨር ማዘጋጀት ---
+# 1. Render Port Binds ለማድረግ Flask ማዘጋጀት
 app = Flask(__name__)
 
 @app.route('/')
@@ -17,10 +17,7 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-# Flask ሰርቨሩን ከበስተጀርባ ማስነሳት
-Thread(target=run_flask, daemon=True).start()
-
-# --- 2. የቦት ኮንፊግሬሽን ---
+# 2. የቦት ኮንፊግሬሽን
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M")
 ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
 WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/")
@@ -91,11 +88,15 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     logging.error("Exception while handling an update:", exc_info=context.error)
 
 def main():
+    # Flask ሰርቨርን ከበስተጀርባ ማስነሳት
+    flask_thread = Thread(target=run_flask)
+    flask_thread.daemon = True
+    flask_thread.start()
+
     bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     bot_app.add_handler(CommandHandler("start", start))
     bot_app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
-    
     bot_app.add_error_handler(error_handler)
 
     print("🤖 Mela SACCO Bot እየሰራ ነው...")
