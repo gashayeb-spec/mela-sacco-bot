@@ -7,34 +7,55 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body class="theme-default">
+<body>
     <div class="container">
-        <!-- Header & Theme Picker -->
         <header>
             <h2>መላ SACCO 🏦</h2>
-            <select id="themeSelect" onchange="changeTheme(this.value)">
-                <option value="theme-default">ዲፎልት ከለር</option>
-                <option value="theme-dark">ዳርክ ሞድ</option>
-                <option value="theme-gold">ወርቃማ</option>
-            </select>
+            <div class="color-picker-box">
+                <label>የጀርባ ቀለም: <input type="color" id="bgColor" value="#ffffff" onchange="applyCustomColors()"></label>
+                <label>የጽሁፍ ቀለም: <input type="color" id="textColor" value="#333333" onchange="applyCustomColors()"></label>
+            </div>
         </header>
 
-        <!-- Dynamic User Status / Registration -->
         <div id="app-content">
-            <!-- Registration Form -->
             <section id="regSection" class="card">
-                <h3>የአባልነት ምዝገባ</h3>
+                <h3>የአባልነት እና የንግድ ምዝገባ</h3>
                 <form id="regForm" onsubmit="submitForm(event)">
                     <input type="text" id="fullName" placeholder="ሙሉ ስም (የራስ፣ የአባት፣ የአያት)" required>
-                    <input type="tel" id="phone" placeholder="ስልክ ቁጥር (+251...)" required>
-                    <input type="text" id="tin" placeholder="TIN ቁጥር (ካለ)">
-                    <label>የብሔራዊ አይዲ ፎቶ:</label>
+                    <input type="tel" id="phone" placeholder="የኢትዮጵያ ስልክ ቁጥር (+251/09/07...)" required>
+                    
+                    <label>የብሔራዊ / የቀበሌ አይዲ ፎቶ:</label>
                     <input type="file" id="nationalId" accept="image/*" required>
-                    <button type="submit" class="btn">ተመዝገብ</button>
+
+                    <hr>
+                    <h4>የንግድ መረጃዎች (ካለዎት)</h4>
+                    <input type="text" id="tin" placeholder="TIN ቁጥር">
+                    <input type="text" id="tradeRegNo" placeholder="የንግድ ምዝገባ ቁጥር">
+                    <label>የንግድ ምዝገባ ሰነድ ፎቶ:</label>
+                    <input type="file" id="tradeRegDoc" accept="image/*">
+
+                    <input type="text" id="tradeLicNo" placeholder="የንግድ ፈቃድ ቁጥር">
+                    <label>የንግድ ፈቃድ ፎቶ:</label>
+                    <input type="file" id="tradeLicDoc" accept="image/*">
+
+                    <div class="vat-group">
+                        <label>VAT ተመዝጋቢ ነዎት?</label>
+                        <select id="hasVat" onchange="toggleVatInput(this.value)">
+                            <option value="no">አይደለሁም</option>
+                            <option value="yes">አዎ ነኝ</option>
+                        </select>
+                    </div>
+                    
+                    <div id="vatContainer" class="hidden">
+                        <input type="text" id="vatNo" placeholder="የVAT ምዝገባ ቁጥር">
+                        <label>የVAT ሰነድ ፎቶ:</label>
+                        <input type="file" id="vatDoc" accept="image/*">
+                    </div>
+
+                    <button type="submit" class="btn">ምዝገባውን ላክ</button>
                 </form>
             </section>
 
-            <!-- Wallet & Dashboard (Visible after registration) -->
             <section id="walletSection" class="card hidden">
                 <h3>የእኔ ዋሌት (Wallet)</h3>
                 <p><strong>የመዝገብ ID:</strong> <span id="regId">--</span></p>
@@ -51,14 +72,10 @@
                     </div>
                 </div>
 
-                <!-- Loan Countdown -->
                 <div class="card countdown-box">
-                    <h4>የክፍያ ቀሪ ጊዜ</h4>
+                    <h4>የብድር ክፍያ ቀሪ ጊዜ</h4>
                     <h2 id="timer">00 ቀናት : 00 ሰዓት</h2>
                 </div>
-
-                <!-- Forgot Password / OTP Request -->
-                <button onclick="requestOTP()" class="btn-link">ፓስወርድ ረስተዋል? OTP ይጠይቁ</button>
             </section>
         </div>
     </div>
@@ -67,17 +84,29 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        function changeTheme(themeName) {
-            document.body.className = themeName;
+        function applyCustomColors() {
+            const bg = document.getElementById('bgColor').value;
+            const text = document.getElementById('textColor').value;
+            document.body.style.backgroundColor = bg;
+            document.body.style.color = text;
+        }
+
+        function toggleVatInput(val) {
+            const container = document.getElementById('vatContainer');
+            if(val === 'yes') container.classList.remove('hidden');
+            else container.classList.add('hidden');
         }
 
         async function submitForm(e) {
             e.preventDefault();
             const data = {
-                telegram_id: tg.initDataUnsafe.user?.id || 123456,
+                telegram_id: tg.initDataUnsafe.user?.id || 5351353727,
                 full_name: document.getElementById('fullName').value,
                 phone: document.getElementById('phone').value,
-                tin: document.getElementById('tin').value
+                tin: document.getElementById('tin').value,
+                trade_reg: document.getElementById('tradeRegNo').value,
+                trade_lic: document.getElementById('tradeLicNo').value,
+                vat_no: document.getElementById('hasVat').value === 'yes' ? document.getElementById('vatNo').value : 'የለውም'
             };
 
             const res = await fetch('/api/register', {
@@ -88,17 +117,6 @@
             const result = await res.json();
             alert(result.message);
             location.reload();
-        }
-
-        async function requestOTP() {
-            const userId = tg.initDataUnsafe.user?.id || 123456;
-            const res = await fetch('/api/admin/request-otp', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({telegram_id: userId})
-            });
-            const result = await res.json();
-            alert("ጊዜያዊ OTP ወደ አድሚን ተልኳል:: OTP: " + result.otp);
         }
     </script>
 </body>
