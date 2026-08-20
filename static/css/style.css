@@ -1,0 +1,96 @@
+:root {
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --primary-color: #27ae60;
+    --danger-color: #e74c3c;
+}
+
+.theme-dark {
+    --bg-color: #1a1a2e;
+    --card-bg: #16213e;
+    --text-color: #ffffff;
+    --primary-color: #0f3460;
+}
+
+.theme-gold {
+    --bg-color: #2c2c2c;
+    --card-bg: #3a3a3a;
+    --text-color: #f1c40f;
+    --primary-color: #d4ac0d;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding: 15px;
+}
+
+.container, .admin-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+input, select, button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.btn {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-approve { background-color: #27ae60; color: white; width: auto; }
+.btn-block { background-color: #e74c3c; color: white; width: auto; }
+
+.balance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.box {
+    background: rgba(0,0,0,0.05);
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.hidden { display: none; }
