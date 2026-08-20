@@ -1,177 +1,284 @@
 <!DOCTYPE html>
 <html lang="am">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mela Sacco System</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    :root {
-      --bg-color: #f4f6f9;
-      --card-bg: #ffffff;
-      --text-color: #333333;
-      --primary-color: #0088cc;
-      --btn-text: #ffffff;
-    }
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 15px;
-    }
-    .card {
-      background-color: var(--card-bg);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-    h2, h3 { color: var(--primary-color); margin-top: 0; }
-    input, select, button {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: var(--primary-color);
-      color: var(--btn-text);
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-    }
-    .footer {
-      text-align: center;
-      font-size: 12px;
-      color: #777;
-      margin-top: 20px;
-      border-top: 1px solid #ddd;
-      padding-top: 10px;
-    }
-    .panel { display: none; }
-    .active-panel { display: block; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mela Sacco Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --btn-color: #2563eb;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .custom-btn {
+            background-color: var(--btn-color);
+            color: #ffffff;
+        }
+    </style>
 </head>
-<body>
+<body class="p-4 transition-colors duration-200">
 
-  <!-- Language & Theme Selector -->
-  <div class="card">
-    <div style="display:flex; gap:10px;">
-      <select id="langSelect" onchange="changeLang()">
-        <option value="am">አማርኛ</option>
-        <option value="en">English</option>
-        <option value="om">Afaan Oromoo</option>
-        <option value="sid">Sidaamu Afoo</option>
-      </select>
-      <input type="color" id="bgColor" value="#f4f6f9" title="Background Color" onchange="applyTheme()">
-      <input type="color" id="primaryColor" value="#0088cc" title="Primary Color" onchange="applyTheme()">
+    <!-- Header & Customizer Controls -->
+    <header class="flex justify-between items-center mb-6 border-b pb-3">
+        <div>
+            <h1 class="text-xl font-bold" id="app-title">Mela Sacco App</h1>
+            <p class="text-xs text-gray-500" id="app-subtitle">የፋይናንስና የብድር ማኔጅመንት</p>
+        </div>
+        <div class="flex gap-2">
+            <select id="lang-select" onchange="changeLanguage()" class="text-sm p-1 border rounded bg-white text-black">
+                <option value="am">አማርኛ</option>
+                <option value="en">English</option>
+            </select>
+            <button onclick="toggleThemeModal()" class="text-xs p-2 border rounded bg-gray-200 text-black">🎨 Theme</button>
+        </div>
+    </header>
+
+    <!-- Theme Customizer Modal -->
+    <div id="theme-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
+        <div class="bg-white text-black p-5 rounded-lg w-full max-w-sm">
+            <h3 class="font-bold mb-3">Theme Customizer</h3>
+            <label class="block text-sm mb-1">Background Color:</label>
+            <input type="color" id="bg-color-input" class="w-full mb-3 h-8 cursor-pointer" value="#f3f4f6">
+            
+            <label class="block text-sm mb-1">Text Color:</label>
+            <input type="color" id="text-color-input" class="w-full mb-3 h-8 cursor-pointer" value="#1f2937">
+            
+            <label class="block text-sm mb-1">Button Color:</label>
+            <input type="color" id="btn-color-input" class="w-full mb-4 h-8 cursor-pointer" value="#2563eb">
+            
+            <div class="flex justify-end gap-2">
+                <button onclick="toggleThemeModal()" class="px-3 py-1 bg-gray-300 rounded text-sm">ዝጋ</button>
+                <button onclick="applyTheme()" class="px-3 py-1 bg-blue-600 text-white rounded text-sm">ተግብር</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Login Panel -->
-  <div id="loginPanel" class="card panel active-panel">
-    <h2 id="txt_login_title">መግቢያ (Login)</h2>
-    <select id="roleSelect">
-      <option value="user">ተጠቃሚ / አባል</option>
-      <option value="super">ዋና አድሚን (Super Admin)</option>
-      <option value="loan">የብድር ክፍል ኃላፊ</option>
-      <option value="doc">የሰነድ አጣሪ ኮሚቴ</option>
-      <option value="daily">የዕለት አሰባሳቢ ኃላፊ</option>
-      <option value="weekly">የሳምንት/ወር አሰባሳቢ</option>
-      <option value="finance">የገንዘብ ክፍል ኃላፊ</option>
-    </select>
-    <input type="text" id="loginId" placeholder="መታወቂያ / ID">
-    <input type="password" id="loginPass" placeholder="ፓስወርድ">
-    <button onclick="login()">ግቡ</button>
-    <p style="text-align:right;"><a href="#" onclick="requestOTP()">ፓስወርድ ረስተዋል? (OTP)</a></p>
-  </div>
+    <!-- Login & Auth Section -->
+    <section id="auth-section" class="bg-white p-5 rounded-xl shadow-md max-w-md mx-auto text-black">
+        <h2 class="text-lg font-bold mb-4 text-center" id="login-head">መግቢያ (Authentication)</h2>
+        <div class="mb-3">
+            <label class="block text-sm mb-1">ስልክ ቁጥር / User ID</label>
+            <input type="text" id="auth-user" class="w-full border p-2 rounded" placeholder="የተጠቃሚ መለያ ያስገቡ">
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm mb-1">6-Digit PIN</label>
+            <input type="password" maxlength="6" id="auth-pin" class="w-full border p-2 rounded text-center tracking-widest text-lg" placeholder="******">
+        </div>
+        <button onclick="login()" class="w-full custom-btn py-2 rounded font-semibold mb-3">ግባ (Login)</button>
+        <button onclick="showOtpReset()" class="w-full text-xs text-blue-600 underline text-center block">Forgot Password? (OTP Reset)</button>
+    </section>
 
-  <!-- Super Admin Panel -->
-  <div id="superPanel" class="card panel">
-    <h2>👑 ዋና አድሚን ፓናል</h2>
-    <p>የሁሉም 5ቱ አድሚኖች እንቅስቃሴና አጠቃላይ የሲስተም መቆጣጠሪያ</p>
-    <button onclick="broadcastMsg()">ለይቶ መልእክት ላክ (Broadcasting)</button>
-  </div>
+    <!-- OTP Reset Section -->
+    <section id="otp-section" class="hidden bg-white p-5 rounded-xl shadow-md max-w-md mx-auto text-black">
+        <h2 class="text-lg font-bold mb-2 text-center">OTP Password Reset</h2>
+        <p class="text-xs text-gray-500 mb-4 text-center">Super Admin ያቀበለዎትን OTP ያስገቡ</p>
+        <input type="text" id="otp-user" class="w-full border p-2 rounded mb-2" placeholder="User ID">
+        <input type="text" id="otp-code" class="w-full border p-2 rounded mb-2" placeholder="OTP Code">
+        <input type="password" id="otp-new-pin" maxlength="6" class="w-full border p-2 rounded mb-4" placeholder="አዲስ 6-Digit PIN">
+        <button onclick="resetPasswordWithOtp()" class="w-full custom-btn py-2 rounded font-semibold mb-2">PIN ቀይር</button>
+        <button onclick="hideOtpReset()" class="w-full text-xs text-gray-500 text-center block">ተመለስ</button>
+    </section>
 
-  <!-- Loan Panel -->
-  <div id="loanPanel" class="card panel">
-    <h2>🏦 የብድር ክፍል ፓናል</h2>
-    <select id="loanStatus">
-      <option>የተወሰዱ ብድሮች</option>
-      <option>በመጠባበቅ ላይ ያሉ</option>
-      <option>የተፈጸሙ ብድሮች</option>
-      <option>በመመለስ ላይ ያሉ</option>
-      <option>የተበላሹ ብድሮች</option>
-      <option>ትርፋማ ብድሮች</option>
-    </select>
-  </div>
+    <!-- Main Dashboard Section (Role Based) -->
+    <section id="dashboard-section" class="hidden">
+        <div class="bg-white p-3 rounded-lg shadow mb-4 text-black flex justify-between items-center">
+            <div>
+                <span class="text-xs text-gray-500">እንኳን ደህና መጡ</span>
+                <h3 id="user-display" class="font-bold">---</h3>
+            </div>
+            <span id="role-badge" class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded font-bold">---</span>
+        </div>
 
-  <!-- Document Panel -->
-  <div id="docPanel" class="card panel">
-    <h2>📄 የሰነድ አጣሪ ኮሚቴ ፓናል</h2>
-    <select id="docStatus">
-      <option>የጸደቀ መረጃ</option>
-      <option>በፔንዲንግ ያለ</option>
-      <option>ልክ ያልሆነ መረጃ</option>
-      <option>ፎርጅድ/የተጭበረበረ</option>
-    </select>
-  </div>
+        <!-- 6 Dedicated Panels -->
+        <!-- 1. Super Admin Panel -->
+        <div id="panel-super_admin" class="panel hidden space-y-4">
+            <div class="bg-white p-4 rounded-lg shadow text-black">
+                <h4 class="font-bold text-red-600 mb-2">1. Super Admin Panel</h4>
+                <p class="text-xs text-gray-600 mb-3">Cascading Authorization (1-to-5 / 1-to-1) & OTP Management</p>
+                <div class="space-y-2">
+                    <button onclick="generateOTP()" class="w-full bg-purple-600 text-white py-2 rounded text-sm">🔑 Generate Reset OTP</button>
+                    <button onclick="fetchAuditLogs()" class="w-full bg-gray-800 text-white py-2 rounded text-sm">📜 Full Transparency Log</button>
+                </div>
+            </div>
+        </div>
 
-  <!-- Daily Collector Panel -->
-  <div id="dailyPanel" class="card panel">
-    <h2>☀️ የዕለት አሰባሳቢ ኃላፊ ፓናል</h2>
-    <h3>የቀን ሰራተኞች ቁጥጥር</h3>
-    <input type="text" id="staffName" placeholder="የሰራተኛው ስም">
-    <select id="staffPerf">
-      <option>ጥሩ ሰርቷል / ሊመሰገን ይገባል</option>
-      <option>መካከለኛ አፈፃፀም</option>
-      <option>ዝቅተኛ አፈፃፀም</option>
-    </select>
-    <button onclick="addStaff()">ሰራተኛ መዝግብ / ኦሬንቴሽን ስጥ</button>
-  </div>
+        <!-- 2. Loan Department Panel -->
+        <div id="panel-loan_dept" class="panel hidden space-y-4">
+            <div class="bg-white p-4 rounded-lg shadow text-black">
+                <h4 class="font-bold text-blue-600 mb-2">2. Loan Department Panel</h4>
+                <p class="text-xs text-gray-500 mb-2">የብድር ሁኔታ ማኔጅመንት (6 ደረጃዎች)</p>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="p-2 border rounded bg-green-50">1. Active Loans</div>
+                    <div class="p-2 border rounded bg-yellow-50">2. Pending Approval</div>
+                    <div class="p-2 border rounded bg-blue-50">3. Completed Loans</div>
+                    <div class="p-2 border rounded bg-indigo-50">4. Repayments</div>
+                    <div class="p-2 border rounded bg-red-50">5. Defaulted Loans</div>
+                    <div class="p-2 border rounded bg-emerald-50">6. Profitable Loans</div>
+                </div>
+            </div>
+        </div>
 
-  <!-- Footer -->
-  <div class="footer">
-    <p>© All Rights Reserved.</p>
-    <p><strong>Developed by Gashaye Bejigu Herebo</strong></p>
-  </div>
+        <!-- 3. Document Verification Panel -->
+        <div id="panel-doc_verify" class="panel hidden space-y-4">
+            <div class="bg-white p-4 rounded-lg shadow text-black">
+                <h4 class="font-bold text-yellow-600 mb-2">3. Document Verification Panel</h4>
+                <div class="space-y-1 text-xs">
+                    <div class="p-2 border-l-4 border-green-500 bg-gray-50">✓ Verified Documents</div>
+                    <div class="p-2 border-l-4 border-yellow-500 bg-gray-50">⏳ Pending Verification</div>
+                    <div class="p-2 border-l-4 border-orange-500 bg-gray-50">⚠ Invalid Data</div>
+                    <div class="p-2 border-l-4 border-red-500 bg-gray-50">❌ Forged Documents</div>
+                </div>
+            </div>
+        </div>
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+        <!-- 4. Daily Collection & Team Lead Panel -->
+        <div id="panel-daily_collect" class="panel hidden space-y-4">
+            <div class="bg-white p-4 rounded-lg shadow text-black">
+                <h4 class="font-bold text-green-600 mb-2">4. Daily Collection & Team Lead</h4>
+                <p class="text-xs text-gray-600 mb-2">የሜዳ ላይ ሰብሳቢዎች መቆጣጠሪያ</p>
+                <button class="w-full bg-green-600 text-white py-2 rounded text-sm">ዕለታዊ ገቢ ይመዝግቡ</button>
+            </div>
+        </div>
 
-    function applyTheme() {
-      const bg = document.getElementById('bgColor').value;
-      const primary = document.getElementById('primaryColor').value;
-      document.documentElement.style.setProperty('--bg-color', bg);
-      document.documentElement.style.setProperty('--primary-color', primary);
-    }
+        <!-- 5. Weekly & Monthly Collection Panel -->
+        <div id="panel-periodic_collect" class="panel hidden space-y-4">
+            <div class="bg-white p-4 rounded-lg shadow text-black">
+                <h4 class="font-bold text-teal-600 mb-2">5. Weekly & Monthly Collection Panel</h4>
+                <p class="text-xs text-gray-600">የሳምንታዊ እና ወርሃዊ ክፍያዎች መከታተያ ሪፖርት</p>
+            </div>
+        </div>
 
-    function showPanel(panelId) {
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
-      document.getElementById(panelId).classList.add('active-panel');
-    }
+        <!-- 6. Finance & Treasury Panel -->
+        <div id="panel-finance_treasury" class="panel hidden space-y-4">
+            <div class="bg-white p-4 rounded-lg shadow text-black">
+                <h4 class="font-bold text-indigo-600 mb-2">6. Finance & Treasury Panel</h4>
+                <p class="text-xs text-gray-600">የፋይናንስ፣ የካፒታል እና የካዝና እንቅስቃሴ መቆጣጠሪያ</p>
+            </div>
+        </div>
+    </section>
 
-    function login() {
-      const role = document.getElementById('roleSelect').value;
-      if (role === 'super') showPanel('superPanel');
-      else if (role === 'loan') showPanel('loanPanel');
-      else if (role === 'doc') showPanel('docPanel');
-      else if (role === 'daily') showPanel('dailyPanel');
-      else alert('እንኳን በደህና መጡ!');
-    }
+    <script>
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if(tg) tg.expand();
 
-    function requestOTP() {
-      const userId = document.getElementById('loginId').value || 'Unknown';
-      fetch('/api/request-otp', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ user_id: userId, role: document.getElementById('roleSelect').value })
-      }).then(() => alert('የ OTP ጥያቄዎ ለዋናው አድሚን ተልኳል!'));
-    }
-  </script>
+        let currentLang = 'am';
+        const langData = {
+            am: { title: "Mela Sacco App", sub: "የፋይናንስና የብድር ማኔጅመንት", login: "መግቢያ (Authentication)" },
+            en: { title: "Mela Sacco App", sub: "Finance & Loan Management", login: "Authentication" }
+        };
+
+        function changeLanguage() {
+            currentLang = document.getElementById('lang-select').value;
+            document.getElementById('app-title').innerText = langData[currentLang].title;
+            document.getElementById('app-subtitle').innerText = langData[currentLang].sub;
+            document.getElementById('login-head').innerText = langData[currentLang].login;
+        }
+
+        function toggleThemeModal() {
+            document.getElementById('theme-modal').classList.toggle('hidden');
+        }
+
+        function applyTheme() {
+            const bg = document.getElementById('bg-color-input').value;
+            const text = document.getElementById('text-color-input').value;
+            const btn = document.getElementById('btn-color-input').value;
+
+            document.documentElement.style.setProperty('--bg-color', bg);
+            document.documentElement.style.setProperty('--text-color', text);
+            document.documentElement.style.setProperty('--btn-color', btn);
+
+            toggleThemeModal();
+        }
+
+        function showOtpReset() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('otp-section').classList.remove('hidden');
+        }
+
+        function hideOtpReset() {
+            document.getElementById('otp-section').classList.add('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+        }
+
+        function login() {
+            const userId = document.getElementById('auth-user').value;
+            const pin = document.getElementById('auth-pin').value;
+
+            if(!userId || pin.length !== 6) {
+                alert("እባክዎን ትክክለኛ መለያ እና ባለ 6-አሃዝ PIN ያስገቡ!");
+                return;
+            }
+
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: userId, pin: pin })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    showDashboard(data.user);
+                } else {
+                    alert(data.message || "የመግቢያ ስህተት!");
+                }
+            })
+            .catch(() => alert("ከሰርቨር ጋር መገናኘት አልተቻለም!"));
+        }
+
+        function showDashboard(user) {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('otp-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+
+            document.getElementById('user-display').innerText = user.name || user.user_id;
+            document.getElementById('role-badge').innerText = user.role.toUpperCase();
+
+            document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+            const targetPanel = document.getElementById(`panel-${user.role}`);
+            if(targetPanel) {
+                targetPanel.classList.remove('hidden');
+            }
+        }
+
+        function generateOTP() {
+            const targetUser = prompt("OTP የሚፈጠርለትን User ID ያስገቡ:");
+            if(!targetUser) return;
+
+            fetch('/api/admin/generate-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ target_user: targetUser })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.otp) alert(`የተፈጠረው OTP: ${data.otp}`);
+                else alert(data.message || "ስህተት ተከስቷል");
+            });
+        }
+
+        function resetPasswordWithOtp() {
+            const userId = document.getElementById('otp-user').value;
+            const otp = document.getElementById('otp-code').value;
+            const newPin = document.getElementById('otp-new-pin').value;
+
+            fetch('/api/reset-password', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: userId, otp: otp, new_pin: newPin })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if(data.status === 'success') hideOtpReset();
+            });
+        }
+    </script>
 </body>
 </html>
