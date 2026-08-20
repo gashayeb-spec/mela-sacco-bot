@@ -4,7 +4,7 @@ import os
 import sqlite3
 import base64
 from io import BytesIO
-from datetime import datetime, timedelta
+from datetime import datetime
 from threading import Thread
 from flask import Flask
 from telegram import Update, WebAppInfo, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
@@ -22,7 +22,6 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g
 ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
 WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/")
 
-# --- Database Setup ---
 def init_db():
     conn = sqlite3.connect('sacco_database.db')
     cursor = conn.cursor()
@@ -32,7 +31,7 @@ def init_db():
             fullname TEXT,
             phone TEXT,
             tin TEXT,
-            status TEXT DEFAULT 'Pending',
+            status TEXT DEFAULT 'NotRegistered',
             savings REAL DEFAULT 0.0,
             loan_amount REAL DEFAULT 0.0,
             loan_due_date TEXT
@@ -51,9 +50,42 @@ init_db()
 
 logging.basicConfig(level=logging.INFO)
 
+# ቦቱ ሲከፈት የሚመጣ አጠቃላይ መረጃ እና መግቢያ
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    btn = ReplyKeyboardMarkup([[KeyboardButton("የመላ ሳኮ ፖርታል (Mini App) 🚀", web_app=WebAppInfo(url=WEB_APP_URL))]], resize_keyboard=True)
-    await update.message.reply_text("እንኳን ወደ **መላ ሳኮ (Mela SACCO)** በደህና መጡ!\n\nታች ያለውን አዝራር በመጫን የቁጠባ እና ብድር አገልግሎቶችን ያግኙ፦", reply_markup=btn, parse_mode="Markdown")
+    user_id = update.effective_user.id
+    conn = sqlite3.connect('sacco_database.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT status, savings, loan_amount, loan_due_date FROM users WHERE user_id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+
+    status = row[0] if row else 'NotRegistered'
+    savings = row[1] if row else 0.0
+    loan = row[2] if row else 0.0
+    
+    days_left = 0
+    if row and row[3]:
+        try:
+            due = datetime.strptime(row[3], '%Y-%m-%d')
+            days_left = max(0, (due - datetime.now()).days)
+        except: pass
+
+    welcome_text = (
+        "🏥 **እንኳን ወደ መላ ህብረት ስራ ማህበር (Mela SACCO) በደህና መጡ!**\n\n"
+        "**ይህ ዲጂታል ሲስተም እንዴት ይሰራል?**\n"
+        "1️⃣ **ምዝገባ፦** ታች ያለውን አዝራር ተጭነው አስፈላጊ መረጃዎችን (ቲን፣ ንግድ ፈቃድ፣ መታወቂያ) በማስገባት ይመዝገቡ።\n"
+        "2️⃣ **ማረጋገጥ (Approval)፦** ያስገቡት መረጃ በአድሚን ተመርምሮ ሲጸድቅ የአባልነት ደረጃዎ **Approved** ይሆናል።\n"
+        "3️⃣ **ቁጠባና ብድር፦** እንደ ቁጠባ መጠንዎ እስከ 3 እጥፍ ብድር ማግኘት እና መክፈያ ቀኑን በካሌንደር ቆጣሪ መከታተል ይችላሉ።\n\n"
+        "👇 **አገልግሎቱን ለመጀመር ታች ያለውን አዝራር ይጫኑ፦**"
+    )
+
+    # የተጠቃሚውን መረጃ ወደ Mini App መላኪያ ሊንክ ማዘጋጀት
+    user_payload = json.dumps({"status": status, "savings": savings, "loan": loan, "daysLeft": days_left})
+    encoded_payload = base64.b64encode(user_payload.encode()).decode()
+    dynamic_url = f"{WEB_APP_URL}#tgWebAppStartParam={encoded_payload}"
+
+    btn = ReplyKeyboardMarkup([[KeyboardButton("የመላ ሳኮ ፖርታል (Mini App) 🚀", web_app=WebAppInfo(url=dynamic_url))]], resize_keyboard=True)
+    await update.message.reply_text(welcome_text, reply_markup=btn, parse_mode="Markdown")
 
 def b64_to_file(b64_str, name):
     if not b64_str or b64_str == "-": return None
@@ -76,7 +108,7 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
                            (user.id, data['fullName'], data['phone'], data['tin'], 'Pending'))
             conn.commit()
 
-            await update.message.reply_text("✅ **የአባልነት ማመልከቻዎ በስኬት ደርሶናል!**\nአድሚኖች መርምረው ምላሽ ይሰጡዎታል።")
+            await update.message.reply_text("⏳ **ማመልከቻዎ በስኬት ተልኳል!**\nአድሚኖች መርምረው አፕሩቭ እስኪያደርጉት ድረስ እባክዎ በትዕግስት ይጠብቁ።")
 
             admin_msg = (
                 f"📥 **አዲስ ማመልከቻ!**\n\n👤 **ስም:** {data['fullName']}\n📞 **ስልክ:** {data['phone']}\n"
@@ -89,7 +121,6 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
             await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=admin_msg, parse_mode="Markdown", reply_markup=kbd)
             
-            # Send photos to Admin
             for doc_name, key in [("የንግድ ፈቃድ", "license"), ("መታወቂያ", "idDoc"), ("የጉርድ ፎቶ", "photo")]:
                 f = b64_to_file(data.get(key), doc_name)
                 if f: await context.bot.send_photo(chat_id=ADMIN_CHAT_ID, photo=f, caption=f"📄 {doc_name} - {data['fullName']}")
@@ -103,14 +134,14 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
                            (float(data.get('savings', 0)), float(data.get('loan', 0)), due_date, target_id))
             conn.commit()
 
-            await update.message.reply_text(f"✅ ለተጠቃሚ ID `{target_id}` መረጃው በስኬት ተዘምኗል!")
-            await context.bot.send_message(chat_id=target_id, text=f"🔔 **አዲስ የሂሳብ ማሳወቂያ!**\n\nየብድር/ቁጠባ ሂሳብዎ በአድሚን ተዘምኗል። እባክዎ በ Mini App ገጽዎ ላይ ያረጋግጡ።")
+            await update.message.reply_text(f"✅ ለተጠቃሚ ID `{target_id}` መረጃው ተዘምኗል!")
+            await context.bot.send_message(chat_id=target_id, text=f"🔔 **አዲስ የሂሳብ ማሳወቂያ!**\n\nየብድር/ቁጠባ ሂሳብዎ በአድሚን ተዘምኗል። ቦቱን እንደገና `/start` በማለት Mini App ገጽዎን ይክፈቱ።")
 
         elif action == "add_admin":
             new_admin = int(data['newAdminId'])
             cursor.execute('INSERT OR IGNORE INTO admins (admin_id) VALUES (?)', (new_admin,))
             conn.commit()
-            await update.message.reply_text(f"👑 ተጠቃሚ ID `{newAdmin}` በስኬት አድሚን ሆኖ ተሾሟል!")
+            await update.message.reply_text(f"👑 ተጠቃሚ ID `{new_admin}` አድሚን ሆኖ ተሾሟል!")
 
         conn.close()
 
@@ -129,7 +160,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cursor.execute("UPDATE users SET status = 'Approved' WHERE user_id = ?", (user_id,))
         conn.commit()
         await query.edit_message_text(text=f"{query.message.text}\n\n✅ **ሁኔታ፦ አባልነቱ ጽድቋል!**")
-        await context.bot.send_message(chat_id=user_id, text="🎉 **እንኳን ደስ አለዎት!** የአባልነት ማመልከቻዎ ጸድቋል።")
+        await context.bot.send_message(chat_id=user_id, text="🎉 **እንኳን ደስ አለዎት!** የአባልነት ማመልከቻዎ ጸድቋል። ቦቱን እንደገና `/start` በማለት የብድርና ቁጠባ ዳሽቦርድዎን ማየት ይችላሉ።")
     elif action == "rej":
         cursor.execute("UPDATE users SET status = 'Rejected' WHERE user_id = ?", (user_id,))
         conn.commit()
