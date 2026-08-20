@@ -30,29 +30,24 @@
 
     .container { width: 100%; max-width: 1400px; margin: 0 auto; flex: 1; }
 
-    /* Header Design */
     .site-header {
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
       border: 1px solid var(--border-color);
       border-radius: 16px; padding: 25px; text-align: center; margin-bottom: 25px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
     }
-    .domain-title { font-size: 28px; font-weight: 800; color: var(--accent-gold); margin: 0; letter-spacing: 1px; }
+    .domain-title { font-size: 28px; font-weight: 800; color: var(--accent-gold); margin: 0; }
     .company-sub { font-size: 15px; color: var(--text-muted); margin-top: 6px; font-weight: 600; }
     
-    /* Navigation / Tabs */
-    .nav-tabs {
-      display: flex; gap: 12px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 8px;
-    }
+    .nav-tabs { display: flex; gap: 12px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 8px; }
     .tab-btn {
       background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted);
       padding: 14px 24px; border-radius: 12px; cursor: pointer; font-weight: bold; white-space: nowrap;
-      transition: all 0.3s ease; font-size: 14px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease; font-size: 14px;
     }
     .tab-btn:hover { background: var(--card-hover); color: var(--text-main); }
     .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-    /* Grid Layout */
     .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
     .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
 
@@ -65,11 +60,11 @@
     .btn {
       background-color: var(--primary); color: white; border: none;
       padding: 14px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px;
-      transition: 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      transition: 0.2s;
     }
     .btn:hover { background-color: var(--primary-hover); }
-    .btn-success { background-color: var(--success); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-    .btn-warning { background-color: var(--accent-gold); color: #000; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+    .btn-success { background-color: var(--success); }
+    .btn-warning { background-color: var(--accent-gold); color: #000; }
 
     .input-group { margin-bottom: 16px; }
     .input-group label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-muted); font-weight: 600; }
@@ -78,21 +73,17 @@
       border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-main); box-sizing: border-box;
       font-size: 14px;
     }
-    .input-group input:focus { border-color: var(--primary); outline: none; }
 
-    /* Accordion / Folders */
     .accordion { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
     .accordion-header { padding: 18px 22px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; font-size: 15px; }
     .accordion-body { padding: 20px; display: none; border-top: 1px solid var(--border-color); font-size: 14px; color: var(--text-muted); line-height: 1.7; }
     .accordion.open .accordion-body { display: block; }
 
-    /* Footer */
     .site-footer {
       border-top: 1px solid var(--border-color); padding: 20px 0;
       text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 40px;
     }
     .dev-credit { color: var(--accent-gold); font-weight: bold; margin-top: 6px; font-size: 14px; }
-
     .hidden { display: none; }
   </style>
 </head>
@@ -100,13 +91,11 @@
 
 <div class="container">
 
-  <!-- Header -->
   <div class="site-header">
     <div class="domain-title">🌐 www.mela-sacco.com</div>
     <div class="company-sub">መላ የብድርና ቁጠባ ኃላፊነቱ የተወሰነ የህብረት ስራ ማህበር</div>
   </div>
 
-  <!-- Navigation Folder Tabs -->
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="switchTab('about-tab')">🏢 ስለ መላ ሳኮ</button>
     <button class="tab-btn" onclick="switchTab('reg-tab')">📝 የአባልነት ምዝገባ</button>
@@ -140,64 +129,25 @@
     </div>
   </div>
 
-  <!-- TAB 2: የአባልነት ምዝገባ (አዲስ የተስተካከለው) -->
+  <!-- TAB 2: የአባልነት ምዝገባ -->
   <div id="reg-tab" class="tab-content hidden">
     <div class="card" style="max-width: 650px; margin: 0 auto;">
       <h3 style="color: var(--primary); margin-top: 0;">📝 የአባልነት መመዝገቢያ ቅጽ</h3>
       
-      <!-- 1. ስም፣ የአባት ስም፣ የአያት ስም -->
       <div class="grid-3">
-        <div class="input-group">
-          <label>ስም *</label>
-          <input type="text" id="reg-first-name" placeholder="ስም">
-        </div>
-        <div class="input-group">
-          <label>የአባት ስም *</label>
-          <input type="text" id="reg-father-name" placeholder="የአባት ስም">
-        </div>
-        <div class="input-group">
-          <label>የአያት ስም *</label>
-          <input type="text" id="reg-grand-name" placeholder="የአያት ስም">
-        </div>
+        <div class="input-group"><label>ስም *</label><input type="text" id="reg-first-name" placeholder="ስም"></div>
+        <div class="input-group"><label>የአባት ስም *</label><input type="text" id="reg-father-name" placeholder="የአባት ስም"></div>
+        <div class="input-group"><label>የአያት ስም *</label><input type="text" id="reg-grand-name" placeholder="የአያት ስም"></div>
       </div>
 
-      <!-- 2. ስልክ ቁጥር -->
-      <div class="input-group">
-        <label>ስልክ ቁጥር (09/07) *</label>
-        <input type="text" id="reg-phone" placeholder="09xxxxxxxx ወይም 07xxxxxxxx">
-      </div>
+      <div class="input-group"><label>ስልክ ቁጥር (09/07) *</label><input type="text" id="reg-phone" placeholder="09xxxxxxxx ወይም 07xxxxxxxx"></div>
+      <div class="input-group"><label>መኖሪያ አድራሻ *</label><input type="text" id="reg-address" placeholder="ከተማ / ክፍለ ከተማ / ወረዳ"></div>
+      <div class="input-group"><label>ናሽናል አይዲ / የመታወቂያ ቁጥር *</label><input type="text" id="reg-national-id" placeholder="የመታወቂያ ቁጥር"></div>
+      <div class="input-group"><label>የንግድ ፈቃድ (Image) *</label><input type="file" id="reg-license-file" accept="image/*"></div>
+      <div class="input-group"><label>TIN ቁጥር *</label><input type="text" id="reg-tin" placeholder="የቲን ቁጥር"></div>
+      <div class="input-group"><label>VAT ቁጥር (ከተመዘገቡ ብቻ)</label><input type="text" id="reg-vat" placeholder="የቫት ቁጥር"></div>
 
-      <!-- 3. መኖሪያ አድራሻ -->
-      <div class="input-group">
-        <label>መኖሪያ አድራሻ (ከተማ / ክፍለ ከተማ / ወረዳ) *</label>
-        <input type="text" id="reg-address" placeholder="ምሳሌ፦ አዲስ አበባ፣ ቦሌ ክፍለ ከተማ፣ ወረዳ 03">
-      </div>
-
-      <!-- 4. ናሽናል አይዲ (መታወቂያ ቁጥር) -->
-      <div class="input-group">
-        <label>ናሽናል አይዲ / የመታወቂያ ቁጥር *</label>
-        <input type="text" id="reg-national-id" placeholder="የናሽናል አይዲ ወይም የመታወቂያ ቁጥር">
-      </div>
-
-      <!-- 5. የንግድ ፈቃድ -->
-      <div class="input-group">
-        <label>የንግድ ፈቃድ (Image / Document) *</label>
-        <input type="file" id="reg-license-file" accept="image/*">
-      </div>
-
-      <!-- 6. ቲን ቁጥር -->
-      <div class="input-group">
-        <label>TIN ቁጥር (ቲን ነበር) *</label>
-        <input type="text" id="reg-tin" placeholder="የቲን ቁጥር ያስገቡ">
-      </div>
-
-      <!-- 7. ቫት (አማራጭ) -->
-      <div class="input-group">
-        <label>VAT ቁጥር (ከተመዘገቡ ብቻ - ካልተመዘገቡ በባዶ ይለፉ)</label>
-        <input type="text" id="reg-vat" placeholder="የቫት ቁጥር (ከተመዘገቡ)">
-      </div>
-
-      <button class="btn btn-success" onclick="submitRegistration()">መረጃዎቹን መዝግብና ላክ</button>
+      <button class="btn btn-success" onclick="submitRegistration()">መረጃዎቹን መዝግብና ለአድሚን ላክ</button>
     </div>
   </div>
 
@@ -235,7 +185,6 @@
 
 </div>
 
-<!-- Footer -->
 <div class="site-footer">
   <div>© 2026 mela-sacco.com® - መላ የብድርና ቁጠባ ኃላፊነቱ የተወሰነ የህብረት ስራ ማህበር</div>
   <div class="dev-credit">የሶፍትዌር አበልጻጊ፦ ጋሻዬ በእጅጉ ®</div>
@@ -261,10 +210,7 @@
   }
 
   function toggleAccordion(element) { element.classList.toggle('open'); }
-
-  function validateEthiopianPhone(phone) {
-    return /^(09|07)\d{8}$/.test(phone);
-  }
+  function validateEthiopianPhone(phone) { return /^(09|07)\d{8}$/.test(phone); }
 
   function getBase64(file) {
     return new Promise((resolve, reject) => {
@@ -286,26 +232,20 @@
     const vat = document.getElementById('reg-vat').value.trim();
     const fileInput = document.getElementById('reg-license-file').files[0];
 
-    // Validation
-    if (!firstName || !fatherName || !grandName) return alert("⚠️ እባክዎን ስም፣ የአባት ስም እና የአያት ስም ሙሉ በሙሉ ያስገቡ!");
-    if (!phone) return alert("⚠️ እባክዎን ስልክ ቁጥር ያስገቡ!");
-    if (!validateEthiopianPhone(phone)) return alert("⚠️ እባክዎን በ 09 ወይም 07 የሚጀምር 10 ዲጂት ስልክ ቁጥር ያስገቡ!");
-    if (!address) return alert("⚠️ እባክዎን መኖሪያ አድራሻዎን ያስገቡ!");
-    if (!nationalId) return alert("⚠️ እባክዎን ናሽናል አይዲ / የመታወቂያ ቁጥር ያስገቡ!");
-    if (!fileInput) return alert("⚠️ እባክዎን የንግድ ፈቃድ ፎቶ/ሰነድ ያያይዙ!");
+    if (!firstName || !fatherName || !grandName) return alert("⚠️ እባክዎን ስም፣ የአባት ስም እና የአያት ስም ያስገቡ!");
+    if (!phone || !validateEthiopianPhone(phone)) return alert("⚠️ እባክዎን ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ!");
+    if (!address) return alert("⚠️ እባክዎን መኖሪያ አድራሻ ያስገቡ!");
+    if (!nationalId) return alert("⚠️ እባክዎን የመታወቂያ/ናሽናል አይዲ ቁጥር ያስገቡ!");
+    if (!fileInput) return alert("⚠️ እባክዎን የንግድ ፈቃድ ፎቶ ያያይዙ!");
     if (!tin) return alert("⚠️ እባክዎን የቲን (TIN) ቁጥር ያስገቡ!");
 
     let fileBase64 = await getBase64(fileInput);
-
     const fullName = `${firstName} ${fatherName} ${grandName}`;
 
     const payload = {
       action: "register",
       userId: currentUserId || "Web_User",
       fullName: fullName,
-      firstName: firstName,
-      fatherName: fatherName,
-      grandName: grandName,
       phone: phone,
       address: address,
       nationalId: nationalId,
