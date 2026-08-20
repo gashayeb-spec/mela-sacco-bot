@@ -1,175 +1,169 @@
-import json
-import logging
 import os
 import sqlite3
-import base64
 import random
-import asyncio
-from io import BytesIO
-from threading import Thread
-from flask import Flask, request, jsonify
+import string
+import threading
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup, Bot
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+import telebot
 
-# Credentials
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M")
-SUPER_ADMIN_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
-WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/?v=14.0")
-PORT = int(os.environ.get("PORT", 10000))
+# Configurations
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
+WEBAPP_URL = os.environ.get("WEBAPP_URL", "https://mela-sacco.onrender.com")
+SUPER_ADMIN_ID = os.environ.get("SUPER_ADMIN_ID", "5351353727")
 
-app = Flask(__name__)
+bot = telebot.TeleBot(BOT_TOKEN)
+app = Flask(__name__, static_folder='.')
 CORS(app)
 
-bot_instance = Bot(token=BOT_TOKEN)
-
-# In-Memory OTP Store: { user_id: "123456" }
-otp_store = {}
+DB_FILE = "mela_sacco.db"
 
 def init_db():
-    conn = sqlite3.connect('sacco_database.db')
+    conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
     # Users Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
-            fullname TEXT,
-            phone TEXT,
-            address TEXT,
-            national_id TEXT,
-            tin TEXT,
-            vat TEXT,
-            doc_status TEXT DEFAULT 'Pending Verification',
-            loan_status TEXT DEFAULT 'None',
-            user_type TEXT DEFAULT 'Shareholder',
-            password TEXT DEFAULT '123456',
-            user_check TEXT,
-            guarantor_name TEXT,
-            guarantor_phone TEXT,
-            guarantor_check TEXT,
-            savings REAL DEFAULT 0.0,
-            loan_amount REAL DEFAULT 0.0
-        )
-    ''')
-    
-    # Staff / Sub-Collectors Table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS staff (
-            staff_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT PRIMARY KEY,
             name TEXT,
-            role TEXT,
-            performance TEXT,
-            assigned_by INTEGER
+            pin TEXT NOT NULL,
+            role TEXT NOT NULL,
+            category TEXT DEFAULT 'Pending Registration'
         )
     ''')
     
+    # OTP Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS otps (
+            user_id TEXT PRIMARY KEY,
+            otp_code TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Audit Transparency Log Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            action TEXT NOT NULL,
+            performed_by TEXT NOT NULL,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Default Super Admin setup using provided Telegram ID
+    cursor.execute("SELECT * FROM users WHERE user_id = ?", (SUPER_ADMIN_ID,))
+    if not cursor.fetchone():
+        cursor.execute("INSERT INTO users (user_id, name, pin, role, category) VALUES (?, ?, ?, ?, ?)",
+                       (SUPER_ADMIN_ID, 'Main Super Admin', '123456', 'super_admin', 'Shareholders'))
+        
     conn.commit()
     conn.close()
 
 init_db()
-logging.basicConfig(level=logging.INFO)
 
-@app.route('/', methods=['GET'])
-def home():
-    return "Mela Sacco Backend - Developed by Gashaye Bejigu Herebo. All Rights Reserved.", 200
+# Serve Frontend HTML
+@app.route('/')
+def index():
+    return send_from_directory('.', 'index.html')
 
-# OTP Generation Endpoint
-@app.route('/api/request-otp', methods=['POST'])
-def request_otp():
-    data = request.json
-    user_id = data.get("user_id")
-    role = data.get("role", "User")
-    
-    otp = str(random.randint(100000, 999999))
-    otp_store[str(user_id)] = otp
-    
-    msg = (
-        f"🔑 **የፓስወርድ ማደሻ ጥያቄ (OTP Request)**\n\n"
-        f"👤 **ተጠቃሚ/አድሚን ID:** `{user_id}`\n"
-        f"ከፍል/ሚና: {role}\n\n"
-        f"🎲 **የተፈጠረ OTP ቁጥር:** `{otp}`\n\n"
-        f"እባክዎን ይህንን OTP ቁጥር ለተጠቃሚው ይላኩለት።"
+# --- Telegram Bot Handler ---
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    markup = telebot.types.InlineKeyboardMarkup()
+    btn = telebot.types.InlineKeyboardButton(
+        text="🚀 Open Mela Sacco App", 
+        web_app=telebot.types.WebAppInfo(url=WEBAPP_URL)
     )
-    
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(bot_instance.send_message(chat_id=SUPER_ADMIN_ID, text=msg, parse_mode="Markdown"))
-    
-    return jsonify({"status": "success", "message": "OTP sent to Super Admin"}), 200
+    markup.add(btn)
+    bot.reply_to(
+        message, 
+        "እንኳን ወደ Mela Sacco ሲስተም በሰላም መጡ! እባክዎን ከታች ያለውን አዝራር በመንካት መተግበሪያውን ይክፈቱ።", 
+        reply_markup=markup
+    )
 
-# API Data Receiver
-@app.route('/api/data', methods=['POST'])
-def handle_api_data():
-    data = request.json
-    action = data.get("action")
-    
-    conn = sqlite3.connect('sacco_database.db')
+# --- Flask REST API Endpoints ---
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.json or {}
+    user_id = str(data.get('user_id'))
+    pin = str(data.get('pin'))
+
+    conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    if action == "register":
-        user_id = data.get("userId", "1000")
-        cursor.execute('''
-            INSERT OR REPLACE INTO users (user_id, fullname, phone, address, national_id, tin, vat, password, doc_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending Verification')
-        ''', (user_id, data.get("fullName"), data.get("phone"), data.get("address"), 
-              data.get("nationalId"), data.get("tin"), data.get("vat", "N/A"), data.get("password", "123456")))
-        conn.commit()
-
-        admin_msg = (
-            f"📥 **አዲስ የአባልነት ማመልከቻ ደርሷል!**\n\n"
-            f"👤 **ስም:** {data.get('fullName')}\n"
-            f"📞 **ስልክ:** `{data.get('phone')}`\n"
-            f"🏠 **አድራሻ:** {data.get('address')}\n"
-            f"🪪 **ናሽናል አይዲ:** `{data.get('nationalId')}`\n"
-            f"🆔 **TIN:** `{data.get('tin')}`\n"
-            f"🔢 **ID:** `{user_id}`"
-        )
-        loop.run_until_complete(bot_instance.send_message(chat_id=SUPER_ADMIN_ID, text=admin_msg, parse_mode="Markdown"))
-
-    elif action == "update_doc_status":
-        cursor.execute("UPDATE users SET doc_status=? WHERE user_id=?", (data.get("status"), data.get("targetId")))
-        conn.commit()
-
-    elif action == "update_loan_status":
-        cursor.execute("UPDATE users SET loan_status=? WHERE user_id=?", (data.get("status"), data.get("targetId")))
-        conn.commit()
-
-    elif action == "add_staff":
-        cursor.execute("INSERT INTO staff (name, role, performance, assigned_by) VALUES (?, ?, ?, ?)",
-                       (data.get("name"), data.get("role"), data.get("performance"), data.get("assigned_by")))
-        conn.commit()
-
+    cursor.execute("SELECT user_id, name, role, category FROM users WHERE user_id = ? AND pin = ?", (user_id, pin))
+    user = cursor.fetchone()
     conn.close()
-    return jsonify({"status": "success"}), 200
 
-def run_flask():
-    app.run(host="0.0.0.0", port=PORT)
+    if user:
+        return jsonify({
+            'status': 'success',
+            'user': {
+                'user_id': user[0],
+                'name': user[1],
+                'role': user[2],
+                'category': user[3]
+            }
+        })
+    return jsonify({'status': 'error', 'message': 'የተሳሳተ መለያ ወይም PIN!'}), 401
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🌐 Mela Sacco System ይክፈቱ", web_app=WebAppInfo(url=WEB_APP_URL))]
-    ])
-    await update.message.reply_text(
-        "🏥 **እንኳን ወደ mela-sacco.com በደህና መጡ!**\n"
-        "_መላ የብድርና ቁጠባ ኃላፊነቱ የተወሰነ የህብረት ስራ ማህበር_\n\n"
-        "ከታች ያለውን አዝራር በመጫን የድርጅቱን አገልግሎት እና ዳሽቦርዶችን ማግኘት ይችላሉ።\n\n"
-        "------------------------------------\n"
-        "© All Rights Reserved.\n"
-        "**Developed by Gashaye Bejigu Herebo**",
-        reply_markup=keyboard, parse_mode="Markdown"
-    )
+@app.route('/api/admin/generate-otp', methods=['POST'])
+def generate_otp():
+    data = request.json or {}
+    target_user = str(data.get('target_user'))
 
-def main():
-    flask_thread = Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
+    otp = ''.join(random.choices(string.digits, k=6))
+    
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("REPLACE INTO otps (user_id, otp_code) VALUES (?, ?)", (target_user, otp))
+    cursor.execute("INSERT INTO audit_logs (action, performed_by) VALUES (?, ?)", 
+                   (f"Generated OTP for {target_user}", "super_admin"))
+    conn.commit()
+    conn.close()
 
-    bot = ApplicationBuilder().token(BOT_TOKEN).build()
-    bot.add_handler(CommandHandler("start", start))
-    bot.run_polling(drop_pending_updates=True)
+    return jsonify({'status': 'success', 'otp': otp})
 
-if __name__ == "__main__":
-    main()
+@app.route('/api/reset-password', methods=['POST'])
+def reset_password():
+    data = request.json or {}
+    user_id = str(data.get('user_id'))
+    otp = str(data.get('otp'))
+    new_pin = str(data.get('new_pin'))
+
+    if not new_pin or len(new_pin) != 6:
+        return jsonify({'status': 'error', 'message': 'PIN 6 አሃዝ መሆን አለበት!'}), 400
+
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT otp_code FROM otps WHERE user_id = ?", (user_id,))
+    record = cursor.fetchone()
+
+    if record and record[0] == otp:
+        cursor.execute("UPDATE users SET pin = ? WHERE user_id = ?", (new_pin, user_id))
+        cursor.execute("DELETE FROM otps WHERE user_id = ?", (user_id,))
+        cursor.execute("INSERT INTO audit_logs (action, performed_by) VALUES (?, ?)", 
+                       ("Reset PIN via OTP", user_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'status': 'success', 'message': 'PIN በስኬት ተቀይሯል!'})
+    
+    conn.close()
+    return jsonify({'status': 'error', 'message': 'የተሳሳተ OTP code!'}), 400
+
+# Execution Loop for Polling
+def start_bot():
+    try:
+        bot.infinity_polling(timeout=10, long_polling_timeout=5)
+    except Exception as e:
+        print(f"Bot Polling Error: {e}")
+
+if __name__ == '__main__':
+    # Start bot polling in a background thread
+    bot_thread = threading.Thread(target=start_bot, daemon=True)
+    bot_thread.start()
+    
+    # Run Flask Web Server on assigned Port
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
