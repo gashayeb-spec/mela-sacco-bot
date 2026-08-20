@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>መላ SACCO - Admin Dynamic Panel</title>
+    <title>መላ SACCO - Admin Panel & Ledger</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+        .modal-content { background: #1e1e2f; color: #fff; margin: 5% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 600px; }
+        .close-btn { float: right; font-size: 24px; cursor: pointer; color: #ff5555; }
+        .ledger-field { margin-bottom: 12px; }
+        .ledger-field label { display: block; font-weight: bold; margin-bottom: 4px; }
+        .ledger-field input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #2a2a3d; color: #fff; }
+    </style>
 </head>
 <body>
     <div class="admin-container">
-        <h2>መላ SACCO - የአድሚን ፓነል 🛡️</h2>
+        <h2>መላ SACCO - የአድሚን ፓነል እና አባል ደብተር 🛡️</h2>
 
-        <div class="role-bar card">
-            <label><strong>የአድሚን ክፍል ይምረጡ:</strong></label>
-            <select id="adminRole" onchange="switchAdminPanel(this.value)">
-                <option value="GM">GM (ዋና ስራ አስኪያጅ)</option>
-                <option value="LOAN_APPROVER">የብድር ፈቃድ እና ሰነድ አጣሪ</option>
-                <option value="LOAN_MANAGER">የብድር ተቆጣጣሪ</option>
-                <option value="FINANCE">የገንዘብ ሰበሳቢ</option>
-            </select>
-        </div>
-
-        <!-- 1. የቀረቡ ተመዝጋቢዎችን በቅጽበት የሚያሳይ ቴብል -->
         <section id="panelApprover" class="card">
-            <h3>📂 የተመዝጋቢዎች እና የሰነዶች መቆጣጠሪያ (Live Data)</h3>
+            <h3>📂 የተመዝጋቢዎች ዝርዝር (አባል ደብተር ለማየት ስሙን/IDውን ይጫኑ)</h3>
             <table>
                 <thead>
                     <tr>
@@ -30,29 +27,56 @@
                         <th>ስም</th>
                         <th>ስልክ</th>
                         <th>ሁኔታ</th>
+                        <th>አክሲዮን</th>
                         <th>እርምጃ</th>
                     </tr>
                 </thead>
                 <tbody id="usersTableBody">
-                    <!-- አውቶማቲክ እዚህ ይሞላል -->
+                    <tr><td colspan="6">መረጃ በመጫን ላይ...</td></tr>
                 </tbody>
             </table>
         </section>
+    </div>
 
-        <!-- 2. የአድሚን ለሌሎች አድሚኖች/ተጠቃሚዎች መልእክት መላኪያ -->
-        <section class="card">
-            <h3>💬 የአድሚኖች እና ተጠቃሚዎች የውስጥ መልእክት ልውውጥ</h3>
-            <input type="number" id="targetTgId" placeholder="የተቀባዩ Telegram ID (የአድሚን ወይም የተመዝጋቢ)">
-            <div class="chat-box" id="chatHistoryBox" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; margin: 10px 0;">
-                <p><em>የተቀባዩን Telegram ID ሲያስገቡ የቆዩ መልእክቶች እዚህ ይታያሉ።</em></p>
-            </div>
-            <textarea id="msgContent" placeholder="መልእክትዎን ይጻፉ..."></textarea>
-            <button onclick="sendInternalMsg()" class="btn">መልእክት ላክ</button>
-        </section>
+    <!-- የአባል ደብተር Pop-up Modal -->
+    <div id="ledgerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeLedger()">&times;</span>
+            <h3 id="modalUserName">የአባል ደብተር</h3>
+            <hr><br>
+            <form id="ledgerForm" onsubmit="saveLedger(event)">
+                <input type="hidden" id="modalTgId">
+                <div class="ledger-field">
+                    <label>የገዛው አክሲዮን ብዛት (እጣ):</label>
+                    <input type="number" id="mShares" required>
+                </div>
+                <div class="ledger-field">
+                    <label>የአክሲዮን ክፍያ መጠን (ETB):</label>
+                    <input type="number" step="0.01" id="mShareAmt" required>
+                </div>
+                <div class="ledger-field">
+                    <label>ጠቅላላ የተቀመጠ ቁጠባ (ETB):</label>
+                    <input type="number" step="0.01" id="mSavings" required>
+                </div>
+                <div class="ledger-field">
+                    <label>የተወሰደ / የተፈቀደ ብድር (ETB):</label>
+                    <input type="number" step="0.01" id="mLoanAmt" required>
+                </div>
+                <div class="ledger-field">
+                    <label>የወለድ መጠን (%):</label>
+                    <input type="number" step="0.1" id="mInterest" required>
+                </div>
+                <div class="ledger-field">
+                    <label>የመክፈያ ጊዜ (በቀናት/Countdown):</label>
+                    <input type="number" id="mDays" required>
+                </div>
+                <br>
+                <button type="submit" class="btn" style="background:#27ae60; width:100%; padding:10px; font-weight:bold;">ደብተሩን ዘምን (Save & Notify)</button>
+            </form>
+        </div>
     </div>
 
     <script>
-        // በየ 3 ሰከንዱ አዲስ መረጃ አውቶማቲክ ማምጫ (Live Sync)
         setInterval(fetchUsers, 3000);
 
         async function fetchUsers() {
@@ -64,18 +88,64 @@
                 data.users.forEach(u => {
                     tbody.innerHTML += `
                         <tr>
-                            <td>${u.reg_id}</td>
-                            <td>${u.full_name}</td>
+                            <td><b>${u.reg_id}</b></td>
+                            <td><a href="#" onclick="openLedger(${u.telegram_id})" style="color:#4ea8de; text-decoration:underline;">${u.full_name}</a></td>
                             <td>${u.phone}</td>
                             <td><span class="badge">${u.status}</span></td>
+                            <td>${u.shares_bought} እጣ (${u.share_amount} ETB)</td>
                             <td>
-                                <button onclick="updateStatus(${u.telegram_id}, 'Approved')" class="btn-sm">Approve</button>
-                                <button onclick="updateStatus(${u.telegram_id}, 'Rejected')" class="btn-sm btn-block">Reject</button>
+                                <button onclick="openLedger(${u.telegram_id})" style="background:#3498db; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">📖 ደብተር ክፈት</button>
+                                <button onclick="updateStatus(${u.telegram_id}, 'Approved')" style="background:#27ae60; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Approve</button>
                             </td>
                         </tr>
                     `;
                 });
             }
+        }
+
+        async function openLedger(tgId) {
+            const res = await fetch(`/api/admin/get-user/${tgId}`);
+            const data = await res.json();
+            if(data.status === 'success') {
+                const u = data.user;
+                document.getElementById('modalTgId').value = u.telegram_id;
+                document.getElementById('modalUserName').innerText = `📖 የአባል ደብተር፡ ${u.full_name} (${u.reg_id})`;
+                document.getElementById('mShares').value = u.shares_bought || 0;
+                document.getElementById('mShareAmt').value = u.share_amount || 0;
+                document.getElementById('mSavings').value = u.savings || 0;
+                document.getElementById('mLoanAmt').value = u.loan_amount || 0;
+                document.getElementById('mInterest').value = u.loan_interest || 0;
+                document.getElementById('mDays').value = u.loan_days || 0;
+                
+                document.getElementById('ledgerModal').style.display = 'block';
+            }
+        }
+
+        function closeLedger() {
+            document.getElementById('ledgerModal').style.display = 'none';
+        }
+
+        async function saveLedger(e) {
+            e.preventDefault();
+            const payload = {
+                telegram_id: document.getElementById('modalTgId').value,
+                shares_bought: document.getElementById('mShares').value,
+                share_amount: document.getElementById('mShareAmt').value,
+                savings: document.getElementById('mSavings').value,
+                loan_amount: document.getElementById('mLoanAmt').value,
+                loan_interest: document.getElementById('mInterest').value,
+                loan_days: document.getElementById('mDays').value
+            };
+
+            const res = await fetch('/api/admin/update-ledger', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            alert(result.message);
+            closeLedger();
+            fetchUsers();
         }
 
         async function updateStatus(tgId, status) {
@@ -87,27 +157,6 @@
             const data = await res.json();
             alert(data.message);
             fetchUsers();
-        }
-
-        async function sendInternalMsg() {
-            const role = document.getElementById('adminRole').value;
-            const targetId = document.getElementById('targetTgId').value;
-            const msg = document.getElementById('msgContent').value;
-
-            if(!targetId || !msg) return alert("እባክዎን የተቀባይ ID እና መልእክት ያስገቡ");
-
-            const res = await fetch('/api/admin/send-internal-msg', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    sender_role: role,
-                    target_id: targetId,
-                    message: msg
-                })
-            });
-            const data = await res.json();
-            alert(data.message);
-            document.getElementById('msgContent').value = '';
         }
 
         fetchUsers();
