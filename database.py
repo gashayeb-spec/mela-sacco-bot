@@ -24,8 +24,13 @@ def init_db(super_admin_id):
             trade_lic TEXT,
             vat_no TEXT,
             status TEXT DEFAULT 'Pending',
+            shares_bought INTEGER DEFAULT 0,
+            share_amount REAL DEFAULT 0.0,
             savings REAL DEFAULT 0.0,
-            loan_amount REAL DEFAULT 0.0
+            loan_amount REAL DEFAULT 0.0,
+            loan_interest REAL DEFAULT 0.0,
+            loan_days INTEGER DEFAULT 0,
+            loan_start_date TEXT DEFAULT ''
         )
     ''')
     
@@ -62,10 +67,29 @@ def get_all_users():
     conn.close()
     return [dict(r) for r in rows]
 
+def get_user_by_tg_id(telegram_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE telegram_id = ?", (telegram_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
 def update_user_status(telegram_id, status):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute('UPDATE users SET status = ? WHERE telegram_id = ?', (status, telegram_id))
+    conn.commit()
+    conn.close()
+
+def update_member_ledger(data):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE users 
+        SET shares_bought = ?, share_amount = ?, savings = ?, loan_amount = ?, loan_interest = ?, loan_days = ?
+        WHERE telegram_id = ?
+    ''', (data['shares_bought'], data['share_amount'], data['savings'], data['loan_amount'], data['loan_interest'], data['loan_days'], data['telegram_id']))
     conn.commit()
     conn.close()
 
