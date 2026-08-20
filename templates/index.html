@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>መላ SACCO</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body class="theme-default">
+    <div class="container">
+        <!-- Header & Theme Picker -->
+        <header>
+            <h2>መላ SACCO 🏦</h2>
+            <select id="themeSelect" onchange="changeTheme(this.value)">
+                <option value="theme-default">ዲፎልት ከለር</option>
+                <option value="theme-dark">ዳርክ ሞድ</option>
+                <option value="theme-gold">ወርቃማ</option>
+            </select>
+        </header>
+
+        <!-- Dynamic User Status / Registration -->
+        <div id="app-content">
+            <!-- Registration Form -->
+            <section id="regSection" class="card">
+                <h3>የአባልነት ምዝገባ</h3>
+                <form id="regForm" onsubmit="submitForm(event)">
+                    <input type="text" id="fullName" placeholder="ሙሉ ስም (የራስ፣ የአባት፣ የአያት)" required>
+                    <input type="tel" id="phone" placeholder="ስልክ ቁጥር (+251...)" required>
+                    <input type="text" id="tin" placeholder="TIN ቁጥር (ካለ)">
+                    <label>የብሔራዊ አይዲ ፎቶ:</label>
+                    <input type="file" id="nationalId" accept="image/*" required>
+                    <button type="submit" class="btn">ተመዝገብ</button>
+                </form>
+            </section>
+
+            <!-- Wallet & Dashboard (Visible after registration) -->
+            <section id="walletSection" class="card hidden">
+                <h3>የእኔ ዋሌት (Wallet)</h3>
+                <p><strong>የመዝገብ ID:</strong> <span id="regId">--</span></p>
+                <p><strong>የአካውንት ሁኔታ:</strong> <span id="userStatus" class="badge">Pending</span></p>
+                
+                <div class="balance-grid">
+                    <div class="box">
+                        <small>የተቆጠበ ገንዘብ</small>
+                        <h4 id="savingsVal">0.00 ETB</h4>
+                    </div>
+                    <div class="box">
+                        <small>የተበደሩት መጠን</small>
+                        <h4 id="loanVal">0.00 ETB</h4>
+                    </div>
+                </div>
+
+                <!-- Loan Countdown -->
+                <div class="card countdown-box">
+                    <h4>የክፍያ ቀሪ ጊዜ</h4>
+                    <h2 id="timer">00 ቀናት : 00 ሰዓት</h2>
+                </div>
+
+                <!-- Forgot Password / OTP Request -->
+                <button onclick="requestOTP()" class="btn-link">ፓስወርድ ረስተዋል? OTP ይጠይቁ</button>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function changeTheme(themeName) {
+            document.body.className = themeName;
+        }
+
+        async function submitForm(e) {
+            e.preventDefault();
+            const data = {
+                telegram_id: tg.initDataUnsafe.user?.id || 123456,
+                full_name: document.getElementById('fullName').value,
+                phone: document.getElementById('phone').value,
+                tin: document.getElementById('tin').value
+            };
+
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            alert(result.message);
+            location.reload();
+        }
+
+        async function requestOTP() {
+            const userId = tg.initDataUnsafe.user?.id || 123456;
+            const res = await fetch('/api/admin/request-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({telegram_id: userId})
+            });
+            const result = await res.json();
+            alert("ጊዜያዊ OTP ወደ አድሚን ተልኳል:: OTP: " + result.otp);
+        }
+    </script>
+</body>
+</html>
