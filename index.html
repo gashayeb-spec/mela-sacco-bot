@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mela Sacco System</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-color: #f4f6f9;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+      --primary-color: #0088cc;
+      --btn-text: #ffffff;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 15px;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    h2, h3 { color: var(--primary-color); margin-top: 0; }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: var(--primary-color);
+      color: var(--btn-text);
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+      margin-top: 20px;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+    }
+    .panel { display: none; }
+    .active-panel { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- Language & Theme Selector -->
+  <div class="card">
+    <div style="display:flex; gap:10px;">
+      <select id="langSelect" onchange="changeLang()">
+        <option value="am">አማርኛ</option>
+        <option value="en">English</option>
+        <option value="om">Afaan Oromoo</option>
+        <option value="sid">Sidaamu Afoo</option>
+      </select>
+      <input type="color" id="bgColor" value="#f4f6f9" title="Background Color" onchange="applyTheme()">
+      <input type="color" id="primaryColor" value="#0088cc" title="Primary Color" onchange="applyTheme()">
+    </div>
+  </div>
+
+  <!-- Login Panel -->
+  <div id="loginPanel" class="card panel active-panel">
+    <h2 id="txt_login_title">መግቢያ (Login)</h2>
+    <select id="roleSelect">
+      <option value="user">ተጠቃሚ / አባል</option>
+      <option value="super">ዋና አድሚን (Super Admin)</option>
+      <option value="loan">የብድር ክፍል ኃላፊ</option>
+      <option value="doc">የሰነድ አጣሪ ኮሚቴ</option>
+      <option value="daily">የዕለት አሰባሳቢ ኃላፊ</option>
+      <option value="weekly">የሳምንት/ወር አሰባሳቢ</option>
+      <option value="finance">የገንዘብ ክፍል ኃላፊ</option>
+    </select>
+    <input type="text" id="loginId" placeholder="መታወቂያ / ID">
+    <input type="password" id="loginPass" placeholder="ፓስወርድ">
+    <button onclick="login()">ግቡ</button>
+    <p style="text-align:right;"><a href="#" onclick="requestOTP()">ፓስወርድ ረስተዋል? (OTP)</a></p>
+  </div>
+
+  <!-- Super Admin Panel -->
+  <div id="superPanel" class="card panel">
+    <h2>👑 ዋና አድሚን ፓናል</h2>
+    <p>የሁሉም 5ቱ አድሚኖች እንቅስቃሴና አጠቃላይ የሲስተም መቆጣጠሪያ</p>
+    <button onclick="broadcastMsg()">ለይቶ መልእክት ላክ (Broadcasting)</button>
+  </div>
+
+  <!-- Loan Panel -->
+  <div id="loanPanel" class="card panel">
+    <h2>🏦 የብድር ክፍል ፓናል</h2>
+    <select id="loanStatus">
+      <option>የተወሰዱ ብድሮች</option>
+      <option>በመጠባበቅ ላይ ያሉ</option>
+      <option>የተፈጸሙ ብድሮች</option>
+      <option>በመመለስ ላይ ያሉ</option>
+      <option>የተበላሹ ብድሮች</option>
+      <option>ትርፋማ ብድሮች</option>
+    </select>
+  </div>
+
+  <!-- Document Panel -->
+  <div id="docPanel" class="card panel">
+    <h2>📄 የሰነድ አጣሪ ኮሚቴ ፓናል</h2>
+    <select id="docStatus">
+      <option>የጸደቀ መረጃ</option>
+      <option>በፔንዲንግ ያለ</option>
+      <option>ልክ ያልሆነ መረጃ</option>
+      <option>ፎርጅድ/የተጭበረበረ</option>
+    </select>
+  </div>
+
+  <!-- Daily Collector Panel -->
+  <div id="dailyPanel" class="card panel">
+    <h2>☀️ የዕለት አሰባሳቢ ኃላፊ ፓናል</h2>
+    <h3>የቀን ሰራተኞች ቁጥጥር</h3>
+    <input type="text" id="staffName" placeholder="የሰራተኛው ስም">
+    <select id="staffPerf">
+      <option>ጥሩ ሰርቷል / ሊመሰገን ይገባል</option>
+      <option>መካከለኛ አፈፃፀም</option>
+      <option>ዝቅተኛ አፈፃፀም</option>
+    </select>
+    <button onclick="addStaff()">ሰራተኛ መዝግብ / ኦሬንቴሽን ስጥ</button>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>© All Rights Reserved.</p>
+    <p><strong>Developed by Gashaye Bejigu Herebo</strong></p>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    function applyTheme() {
+      const bg = document.getElementById('bgColor').value;
+      const primary = document.getElementById('primaryColor').value;
+      document.documentElement.style.setProperty('--bg-color', bg);
+      document.documentElement.style.setProperty('--primary-color', primary);
+    }
+
+    function showPanel(panelId) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
+      document.getElementById(panelId).classList.add('active-panel');
+    }
+
+    function login() {
+      const role = document.getElementById('roleSelect').value;
+      if (role === 'super') showPanel('superPanel');
+      else if (role === 'loan') showPanel('loanPanel');
+      else if (role === 'doc') showPanel('docPanel');
+      else if (role === 'daily') showPanel('dailyPanel');
+      else alert('እንኳን በደህና መጡ!');
+    }
+
+    function requestOTP() {
+      const userId = document.getElementById('loginId').value || 'Unknown';
+      fetch('/api/request-otp', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: userId, role: document.getElementById('roleSelect').value })
+      }).then(() => alert('የ OTP ጥያቄዎ ለዋናው አድሚን ተልኳል!'));
+    }
+  </script>
+</body>
+</html>
