@@ -7,11 +7,13 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-color: #0f172a;
+      --bg-color: #0b1120;
       --card-bg: #1e293b;
+      --card-hover: #334155;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --primary: #3b82f6;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
       --accent-gold: #f59e0b;
       --danger: #ef4444;
       --success: #10b981;
@@ -22,67 +24,74 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
-      margin: 0; padding: 15px;
+      margin: 0; padding: 20px;
       display: flex; flex-direction: column; min-height: 100vh;
     }
 
-    .container { width: 100%; max-width: 1200px; margin: 0 auto; flex: 1; }
+    .container { width: 100%; max-width: 1400px; margin: 0 auto; flex: 1; }
 
-    /* Top Website Header */
+    /* Header Design */
     .site-header {
-      text-align: center; border-bottom: 2px solid var(--border-color);
-      padding-bottom: 15px; margin-bottom: 20px;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 16px; padding: 25px; text-align: center; margin-bottom: 25px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
     }
-    .domain-title { font-size: 24px; font-weight: 800; color: var(--accent-gold); margin: 0; letter-spacing: 1px; }
-    .company-sub { font-size: 14px; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
-    .version-badge {
-      display: inline-block; background: rgba(59, 130, 246, 0.2); color: var(--primary);
-      padding: 3px 10px; border-radius: 12px; font-size: 11px; margin-top: 8px; font-weight: bold;
-    }
-
-    /* Navigation Tabs */
+    .domain-title { font-size: 28px; font-weight: 800; color: var(--accent-gold); margin: 0; letter-spacing: 1px; }
+    .company-sub { font-size: 15px; color: var(--text-muted); margin-top: 6px; font-weight: 600; }
+    
+    /* Navigation / Tabs */
     .nav-tabs {
-      display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px;
+      display: flex; gap: 12px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 8px;
     }
     .tab-btn {
       background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted);
-      padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: bold; white-space: nowrap; transition: 0.2s; font-size: 13px;
+      padding: 14px 24px; border-radius: 12px; cursor: pointer; font-weight: bold; white-space: nowrap;
+      transition: all 0.3s ease; font-size: 14px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
     }
+    .tab-btn:hover { background: var(--card-hover); color: var(--text-main); }
     .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; }
+    /* Grid Layout */
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
 
     .card {
       background: var(--card-bg); border: 1px solid var(--border-color);
-      border-radius: 14px; padding: 20px; margin-bottom: 15px;
+      border-radius: 16px; padding: 25px; margin-bottom: 20px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
     }
 
     .btn {
       background-color: var(--primary); color: white; border: none;
-      padding: 12px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px;
+      padding: 14px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px;
+      transition: 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
-    .btn-success { background-color: var(--success); }
-    .btn-warning { background-color: var(--accent-gold); color: #000; }
+    .btn:hover { background-color: var(--primary-hover); }
+    .btn-success { background-color: var(--success); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+    .btn-warning { background-color: var(--accent-gold); color: #000; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
 
-    .input-group { margin-bottom: 12px; }
-    .input-group label { display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-muted); }
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-muted); font-weight: 600; }
     .input-group input, .input-group textarea {
-      width: 100%; padding: 10px; border-radius: 8px;
+      width: 100%; padding: 12px; border-radius: 10px;
       border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-main); box-sizing: border-box;
+      font-size: 14px;
     }
+    .input-group input:focus { border-color: var(--primary); outline: none; }
 
     /* Accordion / Folders */
-    .accordion { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
-    .accordion-header { padding: 14px 18px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; font-size: 14px; }
-    .accordion-body { padding: 16px; display: none; border-top: 1px solid var(--border-color); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .accordion { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+    .accordion-header { padding: 18px 22px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; font-size: 15px; }
+    .accordion-body { padding: 20px; display: none; border-top: 1px solid var(--border-color); font-size: 14px; color: var(--text-muted); line-height: 1.7; }
     .accordion.open .accordion-body { display: block; }
 
-    /* Footer / Developer Credits */
+    /* Footer */
     .site-footer {
-      border-top: 1px solid var(--border-color); padding: 15px 0 5px 0;
-      text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 30px;
+      border-top: 1px solid var(--border-color); padding: 20px 0;
+      text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 40px;
     }
-    .dev-credit { color: var(--accent-gold); font-weight: bold; margin-top: 4px; }
+    .dev-credit { color: var(--accent-gold); font-weight: bold; margin-top: 6px; font-size: 14px; }
 
     .hidden { display: none; }
   </style>
@@ -91,14 +100,13 @@
 
 <div class="container">
 
-  <!-- Main Website Header -->
+  <!-- Header -->
   <div class="site-header">
     <div class="domain-title">🌐 www.mela-sacco.com</div>
     <div class="company-sub">መላ የብድርና ቁጠባ ኃላፊነቱ የተወሰነ የህብረት ስራ ማህበር</div>
-    <div class="version-badge">🔄 System Version: 9.0 (Updated)</div>
   </div>
 
-  <!-- Folder Navigation Tabs -->
+  <!-- Navigation Folder Tabs -->
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="switchTab('about-tab')">🏢 ስለ መላ ሳኮ</button>
     <button class="tab-btn" onclick="switchTab('reg-tab')">📝 የአባልነት ምዝገባ</button>
@@ -106,11 +114,11 @@
     <button class="tab-btn hidden" id="admin-tab-btn" onclick="switchTab('admin-tab')">⚙️ አድሚን ፓናል</button>
   </div>
 
-  <!-- TAB 1: About Section -->
+  <!-- TAB 1: ስለ መላ ሳኮ -->
   <div id="about-tab" class="tab-content">
     <div class="card">
-      <h3>እንኳን ወደ mela-sacco.com በደህና መጡ!</h3>
-      <p>መላ ሳኮ የኃላፊነቱ የተወሰነ ህብረት ስራ ማህበር ሲሆን፣ አባላቱን በዲጂታል ቴክኖሎጂ የተደገፈ የቁጠባና የብድር አገልግሎት ይሰጣል።</p>
+      <h2 style="color: var(--accent-gold); margin-top: 0;">እንኳን ወደ mela-sacco.com በደህና መጡ!</h2>
+      <p>መላ ሳኮ የኃላፊነቱ የተወሰነ ህብረት ስራ ማህበር ሲሆን፣ አባላቱን በዲጂታል ቴክኖሎጂ የተደገፈ የተቀላጠፈ የቁጠባና የብድር አገልግሎት ይሰጣል።</p>
     </div>
 
     <div class="accordion" onclick="toggleAccordion(this)">
@@ -132,33 +140,81 @@
     </div>
   </div>
 
-  <!-- TAB 2: Registration -->
+  <!-- TAB 2: የአባልነት ምዝገባ (አዲስ የተስተካከለው) -->
   <div id="reg-tab" class="tab-content hidden">
-    <div class="card" style="max-width: 500px; margin: 0 auto;">
-      <h3>📝 የአባልነት መመዝገቢያ ቅጽ</h3>
-      <div class="input-group"><label>ሙሉ ስም</label><input type="text" id="reg-name" placeholder="ሙሉ ስም ያስገቡ"></div>
-      <div class="input-group"><label>ስልክ ቁጥር (09/07)</label><input type="text" id="reg-phone" placeholder="09xxxxxxxx"></div>
-      <div class="input-group"><label>TIN ቁጥር</label><input type="text" id="reg-tin" placeholder="የቲን ቁጥር"></div>
-      <div class="input-group"><label>VAT ቁጥር (ካለዎት)</label><input type="text" id="reg-vat" placeholder="የቫት ቁጥር"></div>
-      <div class="input-group"><label>የንግድ ፈቃድ (Image)</label><input type="file" id="reg-license-file" accept="image/*"></div>
-      <button class="btn btn-success" onclick="submitRegistration()">📩 ማመልከቻ ላክ</button>
+    <div class="card" style="max-width: 650px; margin: 0 auto;">
+      <h3 style="color: var(--primary); margin-top: 0;">📝 የአባልነት መመዝገቢያ ቅጽ</h3>
+      
+      <!-- 1. ስም፣ የአባት ስም፣ የአያት ስም -->
+      <div class="grid-3">
+        <div class="input-group">
+          <label>ስም *</label>
+          <input type="text" id="reg-first-name" placeholder="ስም">
+        </div>
+        <div class="input-group">
+          <label>የአባት ስም *</label>
+          <input type="text" id="reg-father-name" placeholder="የአባት ስም">
+        </div>
+        <div class="input-group">
+          <label>የአያት ስም *</label>
+          <input type="text" id="reg-grand-name" placeholder="የአያት ስም">
+        </div>
+      </div>
+
+      <!-- 2. ስልክ ቁጥር -->
+      <div class="input-group">
+        <label>ስልክ ቁጥር (09/07) *</label>
+        <input type="text" id="reg-phone" placeholder="09xxxxxxxx ወይም 07xxxxxxxx">
+      </div>
+
+      <!-- 3. መኖሪያ አድራሻ -->
+      <div class="input-group">
+        <label>መኖሪያ አድራሻ (ከተማ / ክፍለ ከተማ / ወረዳ) *</label>
+        <input type="text" id="reg-address" placeholder="ምሳሌ፦ አዲስ አበባ፣ ቦሌ ክፍለ ከተማ፣ ወረዳ 03">
+      </div>
+
+      <!-- 4. ናሽናል አይዲ (መታወቂያ ቁጥር) -->
+      <div class="input-group">
+        <label>ናሽናል አይዲ / የመታወቂያ ቁጥር *</label>
+        <input type="text" id="reg-national-id" placeholder="የናሽናል አይዲ ወይም የመታወቂያ ቁጥር">
+      </div>
+
+      <!-- 5. የንግድ ፈቃድ -->
+      <div class="input-group">
+        <label>የንግድ ፈቃድ (Image / Document) *</label>
+        <input type="file" id="reg-license-file" accept="image/*">
+      </div>
+
+      <!-- 6. ቲን ቁጥር -->
+      <div class="input-group">
+        <label>TIN ቁጥር (ቲን ነበር) *</label>
+        <input type="text" id="reg-tin" placeholder="የቲን ቁጥር ያስገቡ">
+      </div>
+
+      <!-- 7. ቫት (አማራጭ) -->
+      <div class="input-group">
+        <label>VAT ቁጥር (ከተመዘገቡ ብቻ - ካልተመዘገቡ በባዶ ይለፉ)</label>
+        <input type="text" id="reg-vat" placeholder="የቫት ቁጥር (ከተመዘገቡ)">
+      </div>
+
+      <button class="btn btn-success" onclick="submitRegistration()">መረጃዎቹን መዝግብና ላክ</button>
     </div>
   </div>
 
-  <!-- TAB 3: Guarantor -->
+  <!-- TAB 3: የዋስትና ሰነድ -->
   <div id="guarantor-tab" class="tab-content hidden">
-    <div class="card" style="max-width: 500px; margin: 0 auto;">
-      <h3>🤝 የዋስትና እና የቼክ ሰነድ</h3>
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+      <h3 style="color: var(--accent-gold); margin-top: 0;">🤝 የዋስትና እና የቼክ ሰነድ ማስገቢያ</h3>
       <div class="input-group"><label>የአባልነት መዝገብ ቁጥር (Member ID)</label><input type="text" id="guar-member-id" placeholder="የመዝገብ ቁጥርዎ"></div>
       <div class="input-group"><label>የተበዳሪው ቼክ ቁጥር</label><input type="text" id="guar-user-check" placeholder="የእርስዎ ቼክ ቁጥር"></div>
       <div class="input-group"><label>የዋስ ሙሉ ስም</label><input type="text" id="guar-name" placeholder="የዋስ ስም"></div>
       <div class="input-group"><label>የዋስ ስልክ ቁጥር (09/07)</label><input type="text" id="guar-phone" placeholder="09xxxxxxxx"></div>
       <div class="input-group"><label>የዋሱ ቼክ ቁጥር</label><input type="text" id="guar-check" placeholder="የዋሱ ቼክ ቁጥር"></div>
-      <button class="btn btn-warning" onclick="submitGuarantorDoc()">📩 የዋስትና ሰነድ ላክ</button>
+      <button class="btn btn-warning" onclick="submitGuarantorDoc()">የዋስትና ሰነድ አስገባ</button>
     </div>
   </div>
 
-  <!-- TAB 4: Admin Panel -->
+  <!-- TAB 4: የአድሚን ፓናል -->
   <div id="admin-tab" class="tab-content hidden">
     <div class="card" style="border: 2px solid var(--accent-gold);">
       <h3>⚙️ የአድሚን መቆጣጠሪያ ፓናል</h3>
@@ -167,11 +223,11 @@
           <div class="input-group"><label>የአባሉ ID</label><input type="number" id="adm-target-id" placeholder="Telegram ID"></div>
           <div class="input-group"><label>የሚጨመር ቁጠባ</label><input type="number" id="adm-savings" placeholder="0.00"></div>
           <div class="input-group"><label>የተፈቀደ ብድር</label><input type="number" id="adm-loan" placeholder="0.00"></div>
-          <button class="btn" onclick="updateUserAccount()">✅ አዘምን</button>
+          <button class="btn" onclick="updateUserAccount()">መረጃ አዘምን</button>
         </div>
         <div>
-          <div class="input-group"><label>ማስታወቂያ መላኪያ</label><textarea id="adm-broadcast-msg" rows="4" placeholder="ማስታወቂያ..."></textarea></div>
-          <button class="btn" onclick="sendBroadcast()">🚀 ማስታወቂያ ላክ</button>
+          <div class="input-group"><label>ማስታወቂያ መላኪያ</label><textarea id="adm-broadcast-msg" rows="4" placeholder="ማስታወቂያ ይፃፉ..."></textarea></div>
+          <button class="btn" onclick="sendBroadcast()">ማስታወቂያ ላክ</button>
         </div>
       </div>
     </div>
@@ -179,16 +235,17 @@
 
 </div>
 
-<!-- Footer with Owner Copyright and Developer Credits -->
+<!-- Footer -->
 <div class="site-footer">
-  <div>© 2026 mela-sacco.com® - መላ የብድርና ቁጠባ ኃላፊነቱ የተወሰነ የህብረት ስራ ማህበር። መብቱ በህግ የተጠበቀ ነው።</div>
-  <div class="dev-credit">💻 የሶፍትዌር አበልጻጊ፦ ጋሻዬ በእጅጉ (Developer: Gashaye Bejigu) ®</div>
+  <div>© 2026 mela-sacco.com® - መላ የብድርና ቁጠባ ኃላፊነቱ የተወሰነ የህብረት ስራ ማህበር</div>
+  <div class="dev-credit">የሶፍትዌር አበልጻጊ፦ ጋሻዬ በእጅጉ ®</div>
 </div>
 
 <script>
   const tg = window.Telegram.WebApp;
   tg.expand();
 
+  const BACKEND_URL = "https://mela-sacco-bot.onrender.com"; 
   const currentUserId = tg.initDataUnsafe?.user?.id;
   const ADMIN_ID = 5351353727;
 
@@ -219,49 +276,102 @@
   }
 
   async function submitRegistration() {
-    const fullName = document.getElementById('reg-name').value;
-    const phone = document.getElementById('reg-phone').value;
-    const tin = document.getElementById('reg-tin').value;
-    const vat = document.getElementById('reg-vat').value;
+    const firstName = document.getElementById('reg-first-name').value.trim();
+    const fatherName = document.getElementById('reg-father-name').value.trim();
+    const grandName = document.getElementById('reg-grand-name').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
+    const address = document.getElementById('reg-address').value.trim();
+    const nationalId = document.getElementById('reg-national-id').value.trim();
+    const tin = document.getElementById('reg-tin').value.trim();
+    const vat = document.getElementById('reg-vat').value.trim();
     const fileInput = document.getElementById('reg-license-file').files[0];
 
-    if (!fullName || !phone || !tin) return alert("እባክዎን ስም፣ ስልክና ቲን ቁጥር ያስገቡ!");
+    // Validation
+    if (!firstName || !fatherName || !grandName) return alert("⚠️ እባክዎን ስም፣ የአባት ስም እና የአያት ስም ሙሉ በሙሉ ያስገቡ!");
+    if (!phone) return alert("⚠️ እባክዎን ስልክ ቁጥር ያስገቡ!");
     if (!validateEthiopianPhone(phone)) return alert("⚠️ እባክዎን በ 09 ወይም 07 የሚጀምር 10 ዲጂት ስልክ ቁጥር ያስገቡ!");
+    if (!address) return alert("⚠️ እባክዎን መኖሪያ አድራሻዎን ያስገቡ!");
+    if (!nationalId) return alert("⚠️ እባክዎን ናሽናል አይዲ / የመታወቂያ ቁጥር ያስገቡ!");
+    if (!fileInput) return alert("⚠️ እባክዎን የንግድ ፈቃድ ፎቶ/ሰነድ ያያይዙ!");
+    if (!tin) return alert("⚠️ እባክዎን የቲን (TIN) ቁጥር ያስገቡ!");
 
-    let fileBase64 = fileInput ? await getBase64(fileInput) : "";
+    let fileBase64 = await getBase64(fileInput);
 
-    tg.sendData(JSON.stringify({
-      action: "register", fullName: fullName, phone: phone, tin: tin, vat: vat, licenseImg: fileBase64
-    }));
+    const fullName = `${firstName} ${fatherName} ${grandName}`;
+
+    const payload = {
+      action: "register",
+      userId: currentUserId || "Web_User",
+      fullName: fullName,
+      firstName: firstName,
+      fatherName: fatherName,
+      grandName: grandName,
+      phone: phone,
+      address: address,
+      nationalId: nationalId,
+      tin: tin,
+      vat: vat || "ያልተመዘገበ",
+      licenseImg: fileBase64
+    };
+
+    try {
+      let res = await fetch(`${BACKEND_URL}/api/data`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        alert("✅ የአባልነት ማመልከቻዎ ለአድሚኑ በስኬት ተልኳል!");
+      } else {
+        tg.sendData(JSON.stringify(payload));
+      }
+    } catch (e) {
+      tg.sendData(JSON.stringify(payload));
+    }
   }
 
   async function submitGuarantorDoc() {
-    const memberId = document.getElementById('guar-member-id').value;
-    const userCheck = document.getElementById('guar-user-check').value;
-    const gName = document.getElementById('guar-name').value;
-    const gPhone = document.getElementById('guar-phone').value;
-    const gCheck = document.getElementById('guar-check').value;
+    const memberId = document.getElementById('guar-member-id').value.trim();
+    const userCheck = document.getElementById('guar-user-check').value.trim();
+    const gName = document.getElementById('guar-name').value.trim();
+    const gPhone = document.getElementById('guar-phone').value.trim();
+    const gCheck = document.getElementById('guar-check').value.trim();
 
     if (!memberId || !userCheck || !gName || !gPhone) return alert("እባክዎን ሁሉንም መረጃዎች ይሙሉ!");
     if (!validateEthiopianPhone(gPhone)) return alert("⚠️ የዋስ ስልክ ቁጥር በ 09 ወይም 07 መጀመር አለበት!");
 
-    tg.sendData(JSON.stringify({
+    const payload = {
       action: "submit_guarantor", memberId: memberId, userCheck: userCheck, guarantorName: gName, guarantorPhone: gPhone, guarantorCheck: gCheck
-    }));
+    };
+
+    try {
+      let res = await fetch(`${BACKEND_URL}/api/data`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        alert("✅ የዋስትና ሰነድዎ ለአድሚኑ በስኬት ተልኳል!");
+      } else {
+        tg.sendData(JSON.stringify(payload));
+      }
+    } catch (e) {
+      tg.sendData(JSON.stringify(payload));
+    }
   }
 
   function updateUserAccount() {
     const targetUser = document.getElementById('adm-target-id').value;
     if (!targetUser) return alert("የአባሉን ID ያስገቡ!");
-    tg.sendData(JSON.stringify({
-      action: "update_account", targetUser: targetUser, savings: document.getElementById('adm-savings').value || 0, loan: document.getElementById('adm-loan').value || 0
-    }));
+    const payload = { action: "update_account", targetUser: targetUser, savings: document.getElementById('adm-savings').value || 0, loan: document.getElementById('adm-loan').value || 0 };
+    fetch(`${BACKEND_URL}/api/data`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   }
 
   function sendBroadcast() {
     const msg = document.getElementById('adm-broadcast-msg').value;
     if (!msg) return alert("መልእክት ያስገቡ");
-    tg.sendData(JSON.stringify({ action: "broadcast", message: msg }));
+    const payload = { action: "broadcast", message: msg };
+    fetch(`${BACKEND_URL}/api/data`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   }
 </script>
 
