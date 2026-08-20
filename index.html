@@ -3,180 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>መላ ሳኮ | Mela SACCO Membership</title>
+    <title>መላ ሳኮ | Mela SACCO Portal</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --primary-color: #0d5c3a;
-            --secondary-color: #e6a100;
-            --dark-color: #1f2937;
-            --light-bg: #f3f4f6;
-            --white: #ffffff;
-        }
+        :root { --primary: #0d5c3a; --accent: #e6a100; --bg: #f4f6f9; --card-bg: #ffffff; --text: #1f2937; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 15px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .theme-picker { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 0.9rem; }
+        .color-input { border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { line-height: 1.6; color: var(--dark-color); background-color: var(--light-bg); }
+        .card { background: var(--card-bg); border-radius: 14px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid var(--accent); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
 
-        header {
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 1rem 5%;
-            position: sticky; top: 0; z-index: 1000;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .dash-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; text-align: center; }
+        .dash-box h4 { font-size: 0.8rem; color: #64748b; margin-bottom: 5px; }
+        .dash-box p { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
 
-        .logo { font-size: 1.4rem; font-weight: bold; color: var(--secondary-color); }
-        .lang-btn {
-            background-color: var(--secondary-color); color: var(--dark-color);
-            border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-weight: bold;
-        }
+        .countdown-card { background: linear-gradient(135deg, #0d5c3a, #15803d); color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 15px; }
+        .countdown-card p { font-size: 0.9rem; opacity: 0.9; }
+        .countdown-card h3 { font-size: 1.8rem; margin: 5px 0; font-weight: 800; }
 
-        .container { max-width: 800px; margin: 20px auto; padding: 20px; }
-        .card { background: var(--white); padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card h2 { color: var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 5px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85rem; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; }
+        .btn { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 8px; }
 
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem;
-        }
-
-        .file-note { font-size: 0.8rem; color: #666; margin-top: 2px; }
-
-        .submit-btn {
-            background-color: var(--primary-color); color: var(--white);
-            border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold;
-        }
-        .submit-btn:hover { background-color: #094229; }
+        .admin-badge { background: #dc2626; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
+        .tab-btn { background: none; border: none; padding: 6px 12px; font-weight: bold; cursor: pointer; color: #666; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">መላ ሳኮ SACCO</div>
-        <button class="lang-btn" id="lang-toggle" onclick="toggleLanguage()">EN</button>
-    </header>
+<div class="container">
+    <div class="top-bar">
+        <div class="theme-picker">
+            <span>🎨 Theme:</span>
+            <input type="color" class="color-input" value="#f4f6f9" onchange="document.body.style.backgroundColor=this.value">
+        </div>
+        <button onclick="toggleLang()" id="langBtn" style="background:var(--primary); color:white; border:none; padding:6px 14px; border-radius:20px; font-weight:bold; cursor:pointer;">EN</button>
+    </div>
 
-    <div class="container">
-        <div class="card">
-            <h2 id="form-title">የአባልነት ማመልከቻ ቅጽ</h2>
-            <form id="membership-form" onsubmit="handleFormSubmit(event)">
-                
-                <!-- መታወቂያ መረጃ -->
-                <div class="form-group">
-                    <label id="lbl-fullname">ሙሉ ስም *</label>
-                    <input type="text" id="fullname" required>
-                </div>
+    <!-- 1. የአባላት መረጃና የብድር የቀን ቆጣሪ ዳሽቦርድ -->
+    <div class="card" id="user-portal">
+        <h2 id="txt-portal-title">የአባልነት ዳሽቦርድ 📊</h2>
+        
+        <div class="countdown-card">
+            <p id="txt-loan-title">የብድር መክፈያ የቀረው ጊዜ</p>
+            <h3 id="loan-countdown">-- ቀን</h3>
+            <p id="loan-details">መመለስ ያለበት ብር፦ 0.00 ETB</p>
+        </div>
 
-                <div class="form-group">
-                    <label id="lbl-phone">ስልክ ቁጥር *</label>
-                    <input type="tel" id="phone" placeholder="09..." required>
-                </div>
-
-                <div class="form-group">
-                    <label id="lbl-tin">የቲን ቁጥር (TIN Number) *</label>
-                    <input type="text" id="tin-number" required>
-                </div>
-
-                <!-- የንግድና የቫት ሁኔታ -->
-                <div class="form-group">
-                    <label id="lbl-vat-status">የ VAT ተመዝጋቢ ነዎት? *</label>
-                    <select id="vat-status" onchange="toggleVatInput()">
-                        <option value="no">አይደለሁም / አልተመዘገብኩም (-)</option>
-                        <option value="yes">አዎ ተመዝግቤአለሁ</option>
-                    </select>
-                </div>
-
-                <div class="form-group" id="vat-number-group" style="display: none;">
-                    <label id="lbl-vat-num">የ VAT ምዝገባ ቁጥር</label>
-                    <input type="text" id="vat-number" placeholder="የቫት ቁጥር ያስገቡ">
-                </div>
-
-                <!-- የሰነድ ማያያዣዎች -->
-                <div class="form-group">
-                    <label id="lbl-doc-license">የንግድ ፈቃድ (Business License) *</label>
-                    <input type="file" id="doc-license" accept="image/*" required>
-                    <div class="file-note">ፎቶ ወይም ስካን የተደረገ ሰነድ ያስገቡ</div>
-                </div>
-
-                <div class="form-group">
-                    <label id="lbl-doc-id">የታደሰ መታወቂያ / ፓስፖርት *</label>
-                    <input type="file" id="doc-id" accept="image/*" required>
-                </div>
-
-                <div class="form-group">
-                    <label id="lbl-doc-photo">የፓስፖርት መጠን ፎቶ *</label>
-                    <input type="file" id="doc-photo" accept="image/*" required>
-                </div>
-
-                <div class="form-group">
-                    <label id="lbl-doc-edu">የትምህርት ማስረጃ (አማራጭ)</label>
-                    <input type="file" id="doc-edu" accept="image/*">
-                </div>
-
-                <button type="submit" class="submit-btn" id="btn-submit">ማመልከቻውን ላክ</button>
-            </form>
+        <div class="dashboard-grid">
+            <div class="dash-box">
+                <h4 id="lbl-saving">ጠቅላላ ቁጠባ</h4>
+                <p id="val-saving">0 ETB</p>
+            </div>
+            <div class="dash-box">
+                <h4 id="lbl-eligibility">የብድር ብቁነት</h4>
+                <p id="val-eligibility">0 ETB</p>
+            </div>
+            <div class="dash-box">
+                <h4 id="lbl-status">የአባልነት ደረጃ</h4>
+                <p id="val-status" style="color:#d97706;">Pending</p>
+            </div>
         </div>
     </div>
 
-    <script>
-        const tg = window.Telegram ? window.Telegram.WebApp : null;
-        if (tg) { tg.ready(); tg.expand(); }
+    <!-- 2. የአድሚን ሙሉ መቆጣጠሪያ (ለአድሚን ብቻ የሚታይ) -->
+    <div class="card" id="admin-panel" style="display:none;">
+        <h2><span>የአድሚን መቆጣጠሪያ</span> <span class="admin-badge">ADMIN</span></h2>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-reg')">አባል መመዝገብ</button>
+            <button class="tab-btn" onclick="switchTab('tab-loan')">ብድር & ቁጠባ</button>
+            <button class="tab-btn" onclick="switchTab('tab-settings')">ሴቲንግ & አድሚን</button>
+        </div>
 
-        let currentLang = 'am';
+        <!-- Tab 1: አባል መመዝገብ -->
+        <div id="tab-reg">
+            <form onsubmit="handleRegistration(event)">
+                <div class="form-group"><label>ሙሉ ስም *</label><input type="text" id="fullname" required></div>
+                <div class="form-group"><label>ስልክ ቁጥር *</label><input type="tel" id="phone" required></div>
+                <div class="form-group"><label>የቲን ቁጥር *</label><input type="text" id="tin" required></div>
+                <div class="form-group"><label>የንግድ ፈቃድ ፎቶ *</label><input type="file" id="doc-license" accept="image/*" required></div>
+                <div class="form-group"><label>የመታወቂያ ፎቶ *</label><input type="file" id="doc-id" accept="image/*" required></div>
+                <div class="form-group"><label>የጉርድ ፎቶ *</label><input type="file" id="doc-photo" accept="image/*" required></div>
+                <button type="submit" class="btn" id="reg-btn">ማመልከቻውን ላክ</button>
+            </form>
+        </div>
 
-        function toggleVatInput() {
-            const vatStatus = document.getElementById('vat-status').value;
-            const vatGroup = document.getElementById('vat-number-group');
-            vatGroup.style.display = vatStatus === 'yes' ? 'block' : 'none';
+        <!-- Tab 2: ብድር እና ቁጠባ ማስተካከያ -->
+        <div id="tab-loan" style="display:none;">
+            <div class="form-group"><label>የአባል Telegram ID</label><input type="number" id="target-user-id" placeholder="የአባሉን ID ያስገቡ"></div>
+            <div class="form-group"><label>የቁጠባ መጠን ይጨምሩ (ETB)</label><input type="number" id="add-savings" placeholder="ለምሳሌ፦ 5000"></div>
+            <div class="form-group"><label>የተፈቀደ ብድር መጠን (ETB)</label><input type="number" id="set-loan-amount" placeholder="ለምሳሌ፦ 20000"></div>
+            <div class="form-group"><label>የብድር መክፈያ ቀናት (የቀን ቆጣሪ)</label><input type="number" id="set-loan-days" placeholder="ለምሳሌ፦ 30"></div>
+            <button type="button" class="btn" onclick="updateUserAccount()">መረጃውን ዘምን</button>
+        </div>
+
+        <!-- Tab 3: አዲስ አድሚን መሾም & የወለድ ሴቲንግ -->
+        <div id="tab-settings" style="display:none;">
+            <div class="form-group"><label>አዲስ አድሚን ለመሾም (Telegram ID)</label><input type="number" id="new-admin-id" placeholder="አዲሱን የአድሚን ID ያስገቡ"></div>
+            <button type="button" class="btn" style="background:#2563eb;" onclick="addNewAdmin()">አዲስ አድሚን ሹም</button>
+            <hr style="margin:15px 0;">
+            <div class="form-group"><label>የማህበሩ ዓመታዊ የወለድ መጠን (%)</label><input type="number" id="interest-rate" value="8"></div>
+            <div class="form-group"><label>ለአባላትና አክሲዮን ባለድርሻዎች ማስታወቂያ ይጻፉ</label><textarea id="broadcast-msg" rows="3"></textarea></div>
+            <button type="button" class="btn" style="background:#059669;" onclick="sendBroadcast()">ማስታወቂያውን አስተላልፍ</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg) { tg.ready(); tg.expand(); }
+
+    const ADMIN_ID = 5351353727;
+    let isAmharic = true;
+
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        if (tg.initDataUnsafe.user.id === ADMIN_ID) {
+            document.getElementById('admin-panel').style.display = 'block';
         }
+    }
 
-        // ፋይልን ወደ Base64 string መቀየሪያ ፋንክሽን
-        const fileToBase64 = file => new Promise((resolve, reject) => {
-            if (!file) return resolve(null);
+    function switchTab(tabId) {
+        document.getElementById('tab-reg').style.display = 'none';
+        document.getElementById('tab-loan').style.display = 'none';
+        document.getElementById('tab-settings').style.display = 'none';
+        document.getElementById(tabId).style.display = 'block';
+    }
+
+    function toggleLang() {
+        isAmharic = !isAmharic;
+        document.getElementById('langBtn').innerText = isAmharic ? "EN" : "AM";
+        document.getElementById('txt-portal-title').innerText = isAmharic ? "የአባልነት ዳሽቦርድ 📊" : "Member Dashboard 📊";
+        document.getElementById('lbl-saving').innerText = isAmharic ? "ጠቅላላ ቁጠባ" : "Total Savings";
+        document.getElementById('lbl-eligibility').innerText = isAmharic ? "የብድር ብቁነት" : "Loan Eligibility";
+    }
+
+    function compressImg(file) {
+        return new Promise((resolve) => {
+            if (!file) return resolve("-");
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-
-        async function handleFormSubmit(event) {
-            event.preventDefault();
-
-            const submitBtn = document.getElementById('btn-submit');
-            submitBtn.innerText = "እየተላከ ነው...";
-            submitBtn.disabled = true;
-
-            try {
-                const licenseFile = document.getElementById('doc-license').files[0];
-                const idFile = document.getElementById('doc-id').files[0];
-                const photoFile = document.getElementById('doc-photo').files[0];
-                const eduFile = document.getElementById('doc-edu').files[0];
-
-                const formData = {
-                    fullName: document.getElementById('fullname').value,
-                    phone: document.getElementById('phone').value,
-                    tinNumber: document.getElementById('tin-number').value,
-                    vatStatus: document.getElementById('vat-status').value,
-                    vatNumber: document.getElementById('vat-number').value || "-",
-                    licenseDoc: await fileToBase64(licenseFile),
-                    idDoc: await fileToBase64(idFile),
-                    photoDoc: await fileToBase64(photoFile),
-                    eduDoc: await fileToBase64(eduFile),
-                    language: currentLang
+            reader.onload = e => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const scale = 800 / img.width;
+                    canvas.width = (img.width > 800) ? 800 : img.width;
+                    canvas.height = (img.width > 800) ? img.height * scale : img.height;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6));
                 };
+            };
+        });
+    }
 
-                if (tg && tg.sendData) {
-                    tg.sendData(JSON.stringify(formData));
-                } else {
-                    alert("ማመልከቻዎ በስኬት ተልኳል!");
-                }
-            } catch (err) {
-                alert("ፋይሎችን በማዘጋጀት ላይ ስህተት ተፈጽሟል። እባክዎ ድጋሚ ይሞክሩ።");
-                submitBtn.disabled = false;
-                submitBtn.innerText = "ማመልከቻውን ላክ";
-            }
-        }
-    </script>
+    async function handleRegistration(e) {
+        e.preventDefault();
+        const btn = document.getElementById('reg-btn');
+        btn.innerText = "እየተላከ ነው..."; btn.disabled = true;
+
+        const data = {
+            action: "register",
+            fullName: document.getElementById('fullname').value,
+            phone: document.getElementById('phone').value,
+            tin: document.getElementById('tin').value,
+            license: await compressImg(document.getElementById('doc-license').files[0]),
+            idDoc: await compressImg(document.getElementById('doc-id').files[0]),
+            photo: await compressImg(document.getElementById('doc-photo').files[0])
+        };
+
+        if (tg && tg.sendData) { tg.sendData(JSON.stringify(data)); }
+    }
+
+    function updateUserAccount() {
+        const data = {
+            action: "update_account",
+            targetUser: document.getElementById('target-user-id').value,
+            savings: document.getElementById('add-savings').value,
+            loan: document.getElementById('set-loan-amount').value,
+            days: document.getElementById('set-loan-days').value
+        };
+        if (tg && tg.sendData) tg.sendData(JSON.stringify(data));
+    }
+
+    function addNewAdmin() {
+        const newAdmin = document.getElementById('new-admin-id').value;
+        if (tg && tg.sendData) tg.sendData(JSON.stringify({ action: "add_admin", newAdminId: newAdmin }));
+    }
+
+    function sendBroadcast() {
+        const msg = document.getElementById('broadcast-msg').value;
+        if (tg && tg.sendData) tg.sendData(JSON.stringify({ action: "broadcast", message: msg }));
+    }
+</script>
 </body>
 </html>
