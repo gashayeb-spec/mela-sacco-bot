@@ -49,7 +49,14 @@ def get_all_users():
     users = db.get_all_users()
     return jsonify({"status": "success", "users": users})
 
-# የተወሰነ ተጠቃሚ ደብተር ዝርዝር ማምጫ API
+# ተመዝጋቢው Mini App ሲከፍት Status እንዲፈትሽ እና አካውንቱ እንዲከፈትለት
+@app.route("/api/user/get-status/<int:telegram_id>", methods=["GET"])
+def get_user_status(telegram_id):
+    user = db.get_user_by_tg_id(telegram_id)
+    if user:
+        return jsonify({"status": "success", "user": user})
+    return jsonify({"status": "error", "message": "ተጠቃሚ አልተገኘም"})
+
 @app.route("/api/admin/get-user/<int:telegram_id>", methods=["GET"])
 def get_user_details(telegram_id):
     user = db.get_user_by_tg_id(telegram_id)
@@ -61,12 +68,11 @@ def approve_user():
     db.update_user_status(data['telegram_id'], data['status'])
     
     status_str = "ጽድቋል ✅" if data['status'] == 'Approved' else "ተሰርዟል ❌"
-    user_msg = f"🔔 **የመላ SACCO አባልነት ማረጋገጫ**\n\nየአባልነት ማመልከቻዎ **{status_str}**።"
+    user_msg = f"🔔 **የመላ SACCO አባልነት ማረጋገጫ**\n\nየአባልነት ማመልከቻዎ **{status_str}**። አሁን Mini App ሲከፍቱ አገልግሎቱ ይሰራል።"
     send_telegram_msg_async(data['telegram_id'], user_msg)
 
     return jsonify({"status": "success", "message": f"ሁኔታው ወደ {data['status']} ተቀይሯል።"})
 
-# የአባልን ደብተር (አክሲዮን፣ ብድር፣ ቁጠባ) ማስተካከያ API
 @app.route("/api/admin/update-ledger", methods=["POST"])
 def update_ledger():
     data = request.json
@@ -74,13 +80,12 @@ def update_ledger():
     
     notify_msg = (
         f"📊 **የአባልነት ደብተርዎ ተሻሽሏል!**\n\n"
-        f"🎟️ **የተገዛ አክሲዮን:** {data['shares_bought']} አክሲዮን ({data['share_amount']} ETB)\n"
+        f"🎟️ **የተገዛ አክሲዮን:** {data['shares_bought']} እጣ ({data['share_amount']} ETB)\n"
         f"💰 **የቁጠባ መጠን:** {data['savings']} ETB\n"
-        f"💳 **የተፈቀደ ብድር:** {data['loan_amount']} ETB (ወለድ: {data['loan_interest']}%, የመክፈያ ጊዜ: {data['loan_days']} ቀን)"
+        f"💳 **የተፈቀደ ብድር:** {data['loan_amount']} ETB"
     )
     send_telegram_msg_async(data['telegram_id'], notify_msg)
-    
-    return jsonify({"status": "success", "message": "የአባሉ ደብተር በስኬት ተዘምኗል!"})
+    return jsonify({"status": "success", "message": "የአባሉ ደብተር ተዘምኗል!"})
 
 @app.route("/api/admin/send-internal-msg", methods=["POST"])
 def send_internal_msg():
@@ -91,8 +96,9 @@ def send_internal_msg():
     return jsonify({"status": "success", "message": "መልእክቱ ደርሷል!"})
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
     keyboard = [[InlineKeyboardButton("📱 መላ SACCO Mini App", web_app=WebAppInfo(url=f"{WEB_APP_URL}/"))]]
-    if update.effective_user.id == SUPER_ADMIN_ID or db.is_admin(update.effective_user.id):
+    if user_id == SUPER_ADMIN_ID or db.is_admin(user_id):
         keyboard.append([InlineKeyboardButton("🛡️ የአድሚን ፓነል", web_app=WebAppInfo(url=f"{WEB_APP_URL}/admin"))])
     await update.message.reply_text("🏦 **እንኳን ወደ መላ SACCO በሰላም መጡ!**", reply_markup=InlineKeyboardMarkup(keyboard))
 
