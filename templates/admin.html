@@ -3,76 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>መላ SACCO - Admin Panel</title>
+    <title>መላ SACCO - Admin Dynamic Panel</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body class="theme-dark">
+<body>
     <div class="admin-container">
         <h2>መላ SACCO - የአድሚን ፓነል 🛡️</h2>
         
-        <!-- Role Selector (For Simulation) -->
-        <div class="role-bar">
-            <label>የአድሚን ሚና ይምረጡ:</label>
-            <select id="adminRole">
+        <div class="color-picker-box card">
+            <label>የአድሚን ገጽ የጀርባ ቀለም: <input type="color" id="adminBgColor" value="#1a1a2e" onchange="applyAdminColors()"></label>
+            <label>የጽሁፍ ቀለም: <input type="color" id="adminTextColor" value="#ffffff" onchange="applyAdminColors()"></label>
+        </div>
+
+        <div class="role-bar card">
+            <label><strong>የአድሚን ክፍል ይምረጡ:</strong></label>
+            <select id="adminRole" onchange="switchAdminPanel(this.value)">
                 <option value="GM">GM (ዋና ስራ አስኪያጅ - ሙሉ ቁጥጥር)</option>
-                <option value="LOAN_APPROVER">የብድር ፈቃዲ (Loan Approver)</option>
-                <option value="LOAN_MANAGER">የብድር ተቆጣጣሪ (Loan Manager)</option>
-                <option value="FINANCE">የቀን ውሎ ተቆጣጣሪ (Finance)</option>
+                <option value="LOAN_APPROVER">የብድር ፈቃድ እና ሰነድ አጣሪ ክፍል</option>
+                <option value="LOAN_MANAGER">የብድር ተቆጣጣሪ እና ገንዘብ ለቃቂ ክፍል</option>
+                <option value="FINANCE">የቀን ውሎ እና የገንዘብ ሰበሳቢ ሪፖርት ክፍል</option>
             </select>
         </div>
 
-        <!-- Section 1: User Verification (Approver / GM) -->
-        <section class="card admin-section">
-            <h3>1. የተመዝጋቢዎች ማረጋገጫ (Verification)</h3>
+        <section id="panelApprover" class="card admin-panel-section">
+            <h3>📂 የሰነዶች ማረጋገጫ እና ብድር ፈቃድ ክፍል</h3>
+            <p>እዚህ ክፍል የቀረቡትን የብሔራዊ አይዲ፣ የንግድ ፈቃድ፣ የንግድ ምዝገባ እና የVAT ሰነዶች በመመርመር አፕሩቭ ወይም ብሎክ ይደረጋል።</p>
             <table>
                 <thead>
                     <tr>
                         <th>መዝገብ ID</th>
                         <th>ስም</th>
-                        <th>ስልክ</th>
-                        <th>ሰነድ</th>
+                        <th>TIN / VAT</th>
                         <th>እርምጃ</th>
                     </tr>
                 </thead>
-                <tbody id="userTable">
-                    <tr>
-                        <td>MS-88392</td>
-                        <td>አበበ ከበደ</td>
-                        <td>0911223344</td>
-                        <td><a href="#">ፎቶ ይመልከቱ</a></td>
-                        <td>
-                            <button onclick="updateStatus(123456, 'Approved')" class="btn-approve">Approve</button>
-                            <button onclick="updateStatus(123456, 'Blocked')" class="btn-block">Block</button>
-                        </td>
-                    </tr>
+                <tbody id="pendingUsersTable">
+                    <!-- Dynamic Data -->
                 </tbody>
             </table>
         </section>
 
-        <!-- Section 2: Loan Setup (Loan Manager) -->
-        <section class="card admin-section">
-            <h3>2. የብድር እና የወለድ መደቢያ</h3>
+        <section id="panelManager" class="card admin-panel-section hidden">
+            <h3>💰 የብድር መቆጣጠሪያ እና ገንዘብ መልሶ መሰብሰቢያ ክፍል</h3>
             <form id="loanForm" onsubmit="setLoan(event)">
                 <input type="number" id="targetTgId" placeholder="የተጠቃሚው Telegram ID" required>
-                <input type="number" id="loanAmt" placeholder="የብድር መጠን (ETB)" required>
+                <input type="number" id="loanAmt" placeholder="የሚለቀቀው ብድር መጠን (ETB)" required>
                 <input type="number" id="interestRate" placeholder="የወለድ መጠን (%)" required>
-                <input type="number" id="loanDays" placeholder="የመክፈያ ቀናት ብዛት" required>
-                <button type="submit" class="btn">ብድር ፈቅድ</button>
+                <input type="number" id="loanDays" placeholder="የመክፈያ ቀናት ብዛት (Countdown)" required>
+                <button type="submit" class="btn">ገንዘብ ልቀቅ / ብድር መዝግብ</button>
             </form>
         </section>
 
-        <!-- Section 3: Admin to Admin Communication / Internal Chat -->
-        <section class="card admin-section">
-            <h3>3. የውስጥ አድሚኖች መነጋገሪያ (Admin Chat)</h3>
-            <div class="chat-box" id="chatBox">
-                <p><strong>[GM]:</strong> የዛሬውን የብድር ክፍያ ሪፖርት አዘጋጁ።</p>
+        <section id="panelFinance" class="card admin-panel-section hidden">
+            <h3>📊 የቀን ውሎ እንቅስቃሴ እና የገንዘብ ሰበሳቢ ሪፖርት</h3>
+            <div class="finance-stats">
+                <div class="box"><h4>የዛሬ ገቢ: 0.00 ETB</h4></div>
+                <div class="box"><h4>የተሰበሰበ ብድር: 0.00 ETB</h4></div>
             </div>
-            <input type="text" id="chatMsg" placeholder="መልእክት ይፃፉ...">
-            <button class="btn">ላክ</button>
+        </section>
+
+        <section class="card">
+            <h3>💬 የመልእክት መላኪያ (Direct Message & Broadcast)</h3>
+            <select id="msgTarget">
+                <option value="single">ለአንድ ሰው ብቻ (Direct Telegram ID)</option>
+                <option value="all">ለሁሉም ተመዝጋቢዎች (Broadcast)</option>
+                <option value="channel">ለቴሌግራም ቻናል (Channel Post)</option>
+            </select>
+            <input type="number" id="directTgId" placeholder="የተቀባዩ Telegram ID (ለአንድ ሰው ከሆነ)">
+            <textarea id="customMessage" placeholder="መልእክትዎን እዚህ ይጻፉ..."></textarea>
+            <button onclick="sendAdminMessage()" class="btn">መልእክት ላክ</button>
         </section>
     </div>
 
     <script>
+        function applyAdminColors() {
+            const bg = document.getElementById('adminBgColor').value;
+            const text = document.getElementById('adminTextColor').value;
+            document.body.style.backgroundColor = bg;
+            document.body.style.color = text;
+        }
+
+        function switchAdminPanel(role) {
+            const approver = document.getElementById('panelApprover');
+            const manager = document.getElementById('panelManager');
+            const finance = document.getElementById('panelFinance');
+
+            approver.classList.add('hidden');
+            manager.classList.add('hidden');
+            finance.classList.add('hidden');
+
+            if(role === 'GM') {
+                approver.classList.remove('hidden');
+                manager.classList.remove('hidden');
+                finance.classList.remove('hidden');
+            } else if(role === 'LOAN_APPROVER') {
+                approver.classList.remove('hidden');
+            } else if(role === 'LOAN_MANAGER') {
+                manager.classList.remove('hidden');
+            } else if(role === 'FINANCE') {
+                finance.classList.remove('hidden');
+            }
+        }
+
         async function updateStatus(tgId, status) {
             const res = await fetch('/api/admin/approve', {
                 method: 'POST',
@@ -95,6 +127,24 @@
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            alert(result.message);
+        }
+
+        async function sendAdminMessage() {
+            const targetType = document.getElementById('msgTarget').value;
+            const targetId = document.getElementById('directTgId').value;
+            const message = document.getElementById('customMessage').value;
+
+            const res = await fetch('/api/admin/send-message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    target_type: targetType,
+                    target_id: targetId,
+                    message: message
+                })
             });
             const result = await res.json();
             alert(result.message);
