@@ -3,10 +3,10 @@ import logging
 import os
 from threading import Thread
 from flask import Flask
-from telegram import Update, WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, WebAppInfo, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-# 1. Render Port Binds ለማድረግ Flask ማዘጋጀት
+# --- 1. Render Port Check ለማለፍ የተዘጋጀ Flask Server ---
 app = Flask(__name__)
 
 @app.route('/')
@@ -17,7 +17,7 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-# 2. የቦት ኮንፊግሬሽን
+# --- 2. የቦት ኮንፊግሬሽን ---
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAFiBZK911QHVYC_UEq3pztxhyitTsU8g1M")
 ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "5351353727"))
 WEB_APP_URL = os.getenv("WEB_APP_URL", "https://gashayeb-spec.github.io/mela-sacco-bot/")
@@ -31,14 +31,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message:
         return
 
-    keyboard = [
-        [InlineKeyboardButton("መላ ሳኮ Mini App ክፈት 🚀", web_app_url=WebAppInfo(url=WEB_APP_URL))]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
+    # WebApp Data በትክክል ለመቀበል KeyboardButton በ Menu መልክ ማዘጋጀት
+    reply_keyboard = ReplyKeyboardMarkup(
+        [[KeyboardButton("መላ ሳኮ Mini App ክፈት 🚀", web_app=WebAppInfo(url=WEB_APP_URL))]],
+        resize_keyboard=True
+    )
+
+    inline_keyboard = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("በቀጥታ በዌብሳይት ክፈት 🔗", web_app=WebAppInfo(url=WEB_APP_URL))]]
+    )
+
     await update.message.reply_text(
-        "እንኳን ወደ **መላ ሳኮ (Mela SACCO)** በደህና መጡ!\n\nታች ያለውን በተን በመጫን አገልግሎታችንን ያግኙ፡",
-        reply_markup=reply_markup,
+        "እንኳን ወደ **መላ ሳኮ (Mela SACCO)** በደህና መጡ!\n\nታች ያለውን የኪቦርድ በተን በመጫን አገልግሎታችንን ያግኙ፡",
+        reply_markup=reply_keyboard,
         parse_mode="Markdown"
     )
 
@@ -88,7 +93,6 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     logging.error("Exception while handling an update:", exc_info=context.error)
 
 def main():
-    # Flask ሰርቨርን ከበስተጀርባ ማስነሳት
     flask_thread = Thread(target=run_flask)
     flask_thread.daemon = True
     flask_thread.start()
@@ -100,7 +104,8 @@ def main():
     bot_app.add_error_handler(error_handler)
 
     print("🤖 Mela SACCO Bot እየሰራ ነው...")
-    bot_app.run_polling(drop_pending_updates=True)
+    # allowed_updates=Update.ALL_TYPES በመጨመር ሁሉንም አዲስ መልእክቶች እንዲያነብ ማድረግ
+    bot_app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
     main()
