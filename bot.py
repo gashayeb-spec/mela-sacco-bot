@@ -20,6 +20,9 @@ CORS(app)
 
 bot_instance = Bot(token=BOT_TOKEN)
 
+# Render የሚሰጠውን PORT ማንበቢያ
+PORT = int(os.environ.get("PORT", 10000))
+
 def init_db():
     conn = sqlite3.connect('sacco_database.db')
     cursor = conn.cursor()
@@ -47,7 +50,10 @@ def init_db():
 init_db()
 logging.basicConfig(level=logging.INFO)
 
-# በዌብሳይት በኩል የሚላክ መረጃ ተቀብሎ ለአድሚን በቴሌግራም የሚያደርስ API Endpoint
+@app.route('/', methods=['GET'])
+def home():
+    return "Mela Sacco Bot Server is Running!", 200
+
 @app.route('/api/data', methods=['POST'])
 def handle_api_data():
     data = request.json
@@ -68,14 +74,12 @@ def handle_api_data():
         tin = data.get("tin")
         vat = data.get("vat", "ያልተመዘገበ")
 
-        # መረጃዎችን በዳታቤዝ ውስጥ መመዝገብ
         cursor.execute('''
             INSERT OR REPLACE INTO users (user_id, fullname, phone, address, national_id, tin, vat, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (user_id if str(user_id).isdigit() else 1000, full_name, phone, address, national_id, tin, vat, 'Pending'))
         conn.commit()
 
-        # ለአድሚን የሚላክ የተሟላ ማሳወቂያ
         admin_msg = (
             f"📥 **አዲስ የአባልነት ማመልከቻ ደርሷል!**\n\n"
             f"👤 **ሙሉ ስም:** {full_name}\n"
@@ -120,8 +124,7 @@ def handle_api_data():
     return jsonify({"status": "success"}), 200
 
 def run_flask():
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=PORT)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = InlineKeyboardMarkup([
@@ -136,7 +139,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=keyboard, parse_mode="Markdown"
     )
 
-# አድሚኑ Approve/Reject ሲጫን የሚሰራ አሰራር (ተመዝጋቢው ጋ መልእክት የሚያደርስ)
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -152,15 +154,14 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         conn.commit()
         await query.message.reply_text(f"✅ የመዝገብ ቁጥር `{target_id}` አባልነቱ ጸድቋል!")
         
-        # ለአባሉ በቴሌግራም ማሳወቂያ መላክ
         if str(target_id).isdigit():
             try:
                 await context.bot.send_message(
                     chat_id=int(target_id),
-                    text="🎉 **እንኳን ደስ አለዎት!**\n\nየመላ ህብረት ስራ ማህበር የአባልነት ማመልከቻዎ በአድሚኑ ጸድቋል። አሁን አገልግሎቶችን መጠቀም ይችላሉ።"
+                    text="🎉 **እንኳን ደስ አለዎት!**\n\nየመላ ህብረት ስራ ማህበር የአባልነት ማመልከቻዎ በአድሚኑ ጸድቋል።"
                 )
             except Exception as e:
-                logging.error(f"ለተጠቃሚው ማሳወቅ አልተቻለም፦ {e}")
+                logging.error(f"Error: {e}")
 
     elif action == "rej":
         cursor.execute("UPDATE users SET status = 'Rejected' WHERE user_id = ?", (target_id,))
@@ -171,15 +172,19 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 await context.bot.send_message(
                     chat_id=int(target_id),
-                    text="⚠️ **ማሳሰቢያ፦**\n\nየአባልነት ማመልከቻዎ አልጸደቀም። እባክዎን የላኳቸውን መረጃዎች እንደገና አስተካክለው ያመልክቱ።"
+                    text="⚠️ **ማሳሰቢያ፦**\n\nየአባልነት ማመልከቻዎ አልጸደቀም።"
                 )
             except Exception as e:
-                logging.error(f"ለተጠቃሚው ማሳወቅ አልተቻለም፦ {e}")
+                logging.error(f"Error: {e}")
 
     conn.close()
 
 def main():
-    Thread(target=run_flask, daemon=True).start()
+    # Flask ሰርቨሩን አስቀድሞ በ Thread ማስነሳት
+    flask_thread = Thread(target=run_flask)
+    flask_thread.daemon = True
+    flask_thread.start()
+
     bot = ApplicationBuilder().token(BOT_TOKEN).build()
     bot.add_handler(CommandHandler("start", start))
     bot.add_handler(CallbackQueryHandler(handle_callback))
