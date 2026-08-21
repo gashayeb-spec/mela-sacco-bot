@@ -2,14 +2,17 @@ import os
 import random
 import re
 import sqlite3
+import threading
 import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-BOT_TOKEN = "8543715567:AAHU9BLxEr7rsBDYaTU_d64M2MxfpHOyJYo"
-SUPER_ADMIN_ID = "5351353727"
+# Environment Variables
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8543715567:AAHU9BLxEr7rsBDYaTU_d64M2MxfpHOyJYo")
+SUPER_ADMIN_ID = os.getenv("SUPER_ADMIN_ID", "5351353727")
+WEB_APP_URL = "https://mela-sacco-bot.onrender.com"  # Render Web App URL
 
 # Database Initialization
 def init_db():
@@ -104,20 +107,16 @@ def register():
     password = data.get('password', '')
     telegram_id = str(data.get('telegram_id', ''))
 
-    # Phone Validation (+251, 251, 09, 07)
     phone_pattern = re.compile(r'^(?:\+251|251|09|07)\d{8}$')
     if not phone_pattern.match(phone):
         return jsonify({"status": "error", "message": "እባክዎን ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ! (+251/09/07)"}), 400
 
-    # FAN National ID Validation (12 Digits)
     if not (national_id.isdigit() and len(national_id) == 12):
         return jsonify({"status": "error", "message": "ብሔራዊ መታወቂያ (FAN) በትክክል 12 አሃዝ መሆን አለበት!"}), 400
 
-    # TIN Number Validation (10 Digits)
     if not (tin_number.isdigit() and len(tin_number) == 10):
         return jsonify({"status": "error", "message": "የቲን ቁጥር (TIN Number) በትክክል 10 አሃዝ መሆን አለበት!"}), 400
 
-    # Password Length Validation (Min 6 Digits)
     if len(str(password)) < 6:
         return jsonify({"status": "error", "message": "የይለፍ ቃል ቢያንስ 6 አሃዝ መሆን አለበት!"}), 400
 
@@ -131,7 +130,6 @@ def register():
         conn.commit()
         conn.close()
 
-        # Notify Super Admin
         msg = f"<b>🆕 አዲስ የአባልነት ምዝገባ ጥያቄ!</b>\n\n👤 ስም: {full_name}\n📞 ስልክ: {phone}\n📍 ቦታ: {city}\n🆔 FAN: {national_id}\n📄 TIN: {tin_number}"
         send_telegram_msg(SUPER_ADMIN_ID, msg)
 
@@ -149,14 +147,12 @@ def login():
     conn = sqlite3.connect("mela_sacco.db")
     cursor = conn.cursor()
 
-    # Check Department Passwords
     cursor.execute("SELECT dept_name FROM department_passwords WHERE dept_name=? AND password=?", (login_id, password))
     dept = cursor.fetchone()
     if dept:
         conn.close()
         return jsonify({"status": "success", "type": "department", "role": dept[0]})
 
-    # Check Member Account Passwords
     cursor.execute("SELECT id, full_name, role, level, documents_status FROM users WHERE (telegram_id=? OR phone=?) AND password=?", (login_id, login_id, password))
     user = cursor.fetchone()
     conn.close()
@@ -189,7 +185,6 @@ def request_otp():
     conn.commit()
     conn.close()
 
-    # Send Notification to Telegram Super Admin
     otp_msg = f"<b>🔐 የ OTP የይለፍ ቃል ጥያቄ!</b>\n\n👤 ተጠቃሚ ID: <code>{telegram_id}</code>\n🔑 OTP Code: <code>{otp}</code>"
     send_telegram_msg(SUPER_ADMIN_ID, otp_msg)
 
@@ -221,12 +216,15 @@ def reset_password():
     conn.close()
     return jsonify({"status": "error", "message": "የተሳሳተ ወይም አገልግሎት ላይ የዋለ OTP ኮድ!"}), 400
 
+# Health check route for Render
+@app.route('/')
+def home():
+    return "Mela Sacco Web App Server is Active!"
+
 # Telegram Bot Setup
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    web_app_url = "https://your-domain-or-render-url.com" # Here your hosted Web App URL connects
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton(text="🚀 Mela Sacco Mini App ክፈት", web_app=WebAppInfo(url=web_app_url))]
+        [InlineKeyboardButton(text="🚀 Mela Sacco Mini App ክፈት", web_app=WebAppInfo(url=WEB_APP_URL))]
     ])
     welcome_text = (
         f"<b>እንኳን ወደ መላ ሳኮ (Mela Sacco) በደህና መጡ! 🏦</b>\n\n"
@@ -235,13 +233,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(welcome_text, parse_mode="HTML", reply_markup=keyboard)
 
-def main():
+def run_flask():
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
+if __name__ == "__main__":
+    # Start Flask Server in a background thread
+    threading.Thread(target=run_flask, daemon=True).start()
+
+    # Start Telegram Bot
     application = Application.builder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     
     print("Mela Sacco Bot & Flask Server Running...")
-    # Flask app start point
-    app.run(host="0.0.0.0", port=5000)
-
-if __name__ == "__main__":
-    main()
+    application.run_polling()
