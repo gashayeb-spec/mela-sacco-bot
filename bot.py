@@ -1,169 +1,247 @@
 import os
-import sqlite3
 import random
-import string
-import threading
-from flask import Flask, request, jsonify, send_from_directory
+import re
+import sqlite3
+import requests
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-import telebot
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import Application, CommandHandler, ContextTypes
 
-# Configurations
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
-WEBAPP_URL = os.environ.get("WEBAPP_URL", "https://mela-sacco.onrender.com")
-SUPER_ADMIN_ID = os.environ.get("SUPER_ADMIN_ID", "5351353727")
+BOT_TOKEN = "8543715567:AAHU9BLxEr7rsBDYaTU_d64M2MxfpHOyJYo"
+SUPER_ADMIN_ID = "5351353727"
 
-bot = telebot.TeleBot(BOT_TOKEN)
-app = Flask(__name__, static_folder='.')
-CORS(app)
-
-DB_FILE = "mela_sacco.db"
-
+# Database Initialization
 def init_db():
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect("mela_sacco.db")
     cursor = conn.cursor()
     
     # Users Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            user_id TEXT PRIMARY KEY,
-            name TEXT,
-            pin TEXT NOT NULL,
-            role TEXT NOT NULL,
-            category TEXT DEFAULT 'Pending Registration'
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            telegram_id TEXT UNIQUE,
+            full_name TEXT,
+            phone TEXT,
+            city TEXT,
+            national_id TEXT,
+            tin_number TEXT,
+            vat_registered TEXT,
+            role TEXT DEFAULT 'pending_registration',
+            level INTEGER DEFAULT 1,
+            password TEXT,
+            documents_status TEXT DEFAULT 'pending_verification'
         )
     ''')
     
-    # OTP Table
+    # Department Credentials Table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS otps (
-            user_id TEXT PRIMARY KEY,
-            otp_code TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        CREATE TABLE IF NOT EXISTS department_passwords (
+            dept_name TEXT PRIMARY KEY,
+            password TEXT
         )
     ''')
+    
+    # Default Passwords
+    default_depts = [
+        ('super_admin', 'admin123'),
+        ('loan_dept', 'loan123'),
+        ('doc_verification', 'doc123'),
+        ('daily_collection', 'daily123'),
+        ('wm_collection', 'wm123'),
+        ('finance_treasury', 'fin123')
+    ]
+    cursor.executemany("INSERT OR IGNORE INTO department_passwords VALUES (?, ?)", default_depts)
 
-    # Audit Transparency Log Table
+    # OTP Requests Table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS audit_logs (
+        CREATE TABLE IF NOT EXISTS otp_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            action TEXT NOT NULL,
-            performed_by TEXT NOT NULL,
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            telegram_id TEXT,
+            otp_code TEXT,
+            status TEXT DEFAULT 'pending',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
-
-    # Default Super Admin setup using provided Telegram ID
-    cursor.execute("SELECT * FROM users WHERE user_id = ?", (SUPER_ADMIN_ID,))
-    if not cursor.fetchone():
-        cursor.execute("INSERT INTO users (user_id, name, pin, role, category) VALUES (?, ?, ?, ?, ?)",
-                       (SUPER_ADMIN_ID, 'Main Super Admin', '123456', 'super_admin', 'Shareholders'))
-        
+    
+    # System Logs Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS system_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            action TEXT,
+            performed_by TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     conn.commit()
     conn.close()
 
 init_db()
 
-# Serve Frontend HTML
-@app.route('/')
-def index():
-    return send_from_directory('.', 'index.html')
+# Flask App Setup
+app = Flask(__name__)
+CORS(app)
 
-# --- Telegram Bot Handler ---
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    markup = telebot.types.InlineKeyboardMarkup()
-    btn = telebot.types.InlineKeyboardButton(
-        text="🚀 Open Mela Sacco App", 
-        web_app=telebot.types.WebAppInfo(url=WEBAPP_URL)
-    )
-    markup.add(btn)
-    bot.reply_to(
-        message, 
-        "እንኳን ወደ Mela Sacco ሲስተም በሰላም መጡ! እባክዎን ከታች ያለውን አዝራር በመንካት መተግበሪያውን ይክፈቱ።", 
-        reply_markup=markup
-    )
+def send_telegram_msg(chat_id, text):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
+    try:
+        requests.post(url, json=payload)
+    except Exception as e:
+        print(f"Telegram Notification Error: {e}")
 
-# --- Flask REST API Endpoints ---
+# API: Member Registration
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    full_name = data.get('full_name', '').strip()
+    phone = data.get('phone', '').strip()
+    city = data.get('city', '').strip()
+    national_id = data.get('national_id', '').strip()
+    tin_number = data.get('tin_number', '').strip()
+    vat_registered = data.get('vat_registered', 'no')
+    password = data.get('password', '')
+    telegram_id = str(data.get('telegram_id', ''))
+
+    # Phone Validation (+251, 251, 09, 07)
+    phone_pattern = re.compile(r'^(?:\+251|251|09|07)\d{8}$')
+    if not phone_pattern.match(phone):
+        return jsonify({"status": "error", "message": "እባክዎን ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ! (+251/09/07)"}), 400
+
+    # FAN National ID Validation (12 Digits)
+    if not (national_id.isdigit() and len(national_id) == 12):
+        return jsonify({"status": "error", "message": "ብሔራዊ መታወቂያ (FAN) በትክክል 12 አሃዝ መሆን አለበት!"}), 400
+
+    # TIN Number Validation (10 Digits)
+    if not (tin_number.isdigit() and len(tin_number) == 10):
+        return jsonify({"status": "error", "message": "የቲን ቁጥር (TIN Number) በትክክል 10 አሃዝ መሆን አለበት!"}), 400
+
+    # Password Length Validation (Min 6 Digits)
+    if len(str(password)) < 6:
+        return jsonify({"status": "error", "message": "የይለፍ ቃል ቢያንስ 6 አሃዝ መሆን አለበት!"}), 400
+
+    try:
+        conn = sqlite3.connect("mela_sacco.db")
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO users (telegram_id, full_name, phone, city, national_id, tin_number, vat_registered, password, role, documents_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending_registration', 'pending_verification')
+        ''', (telegram_id, full_name, phone, city, national_id, tin_number, vat_registered, password))
+        conn.commit()
+        conn.close()
+
+        # Notify Super Admin
+        msg = f"<b>🆕 አዲስ የአባልነት ምዝገባ ጥያቄ!</b>\n\n👤 ስም: {full_name}\n📞 ስልክ: {phone}\n📍 ቦታ: {city}\n🆔 FAN: {national_id}\n📄 TIN: {tin_number}"
+        send_telegram_msg(SUPER_ADMIN_ID, msg)
+
+        return jsonify({"status": "success", "message": "ምዝገባዎ ተጠናቅቋል! ሰነዶችዎ ተረጋግጠው እስኪፀድቁ ድረስ ይቆዩ።"})
+    except sqlite3.IntegrityError:
+        return jsonify({"status": "error", "message": "ይህ የቴሌግራም መለያ ወይም ስልክ ቁጥር አስቀድሞ ተመዝግቧል!"}), 400
+
+# API: Department & User Login
 @app.route('/api/login', methods=['POST'])
-def api_login():
-    data = request.json or {}
-    user_id = str(data.get('user_id'))
-    pin = str(data.get('pin'))
+def login():
+    data = request.json
+    login_id = data.get('login_id', '').strip()
+    password = data.get('password', '').strip()
 
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect("mela_sacco.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT user_id, name, role, category FROM users WHERE user_id = ? AND pin = ?", (user_id, pin))
+
+    # Check Department Passwords
+    cursor.execute("SELECT dept_name FROM department_passwords WHERE dept_name=? AND password=?", (login_id, password))
+    dept = cursor.fetchone()
+    if dept:
+        conn.close()
+        return jsonify({"status": "success", "type": "department", "role": dept[0]})
+
+    # Check Member Account Passwords
+    cursor.execute("SELECT id, full_name, role, level, documents_status FROM users WHERE (telegram_id=? OR phone=?) AND password=?", (login_id, login_id, password))
     user = cursor.fetchone()
     conn.close()
 
     if user:
         return jsonify({
-            'status': 'success',
-            'user': {
-                'user_id': user[0],
-                'name': user[1],
-                'role': user[2],
-                'category': user[3]
+            "status": "success",
+            "type": "member",
+            "user": {
+                "id": user[0],
+                "name": user[1],
+                "role": user[2],
+                "level": user[3],
+                "doc_status": user[4]
             }
         })
-    return jsonify({'status': 'error', 'message': 'የተሳሳተ መለያ ወይም PIN!'}), 401
 
-@app.route('/api/admin/generate-otp', methods=['POST'])
-def generate_otp():
-    data = request.json or {}
-    target_user = str(data.get('target_user'))
+    return jsonify({"status": "error", "message": "የተሳሳተ መለያ ቁጥር ወይም የይለፍ ቃል!"}), 401
 
-    otp = ''.join(random.choices(string.digits, k=6))
-    
-    conn = sqlite3.connect(DB_FILE)
+# API: OTP Request
+@app.route('/api/request-otp', methods=['POST'])
+def request_otp():
+    data = request.json
+    telegram_id = data.get('telegram_id', '').strip()
+
+    otp = str(random.randint(100000, 999999))
+    conn = sqlite3.connect("mela_sacco.db")
     cursor = conn.cursor()
-    cursor.execute("REPLACE INTO otps (user_id, otp_code) VALUES (?, ?)", (target_user, otp))
-    cursor.execute("INSERT INTO audit_logs (action, performed_by) VALUES (?, ?)", 
-                   (f"Generated OTP for {target_user}", "super_admin"))
+    cursor.execute("INSERT INTO otp_requests (telegram_id, otp_code) VALUES (?, ?)", (telegram_id, otp))
     conn.commit()
     conn.close()
 
-    return jsonify({'status': 'success', 'otp': otp})
+    # Send Notification to Telegram Super Admin
+    otp_msg = f"<b>🔐 የ OTP የይለፍ ቃል ጥያቄ!</b>\n\n👤 ተጠቃሚ ID: <code>{telegram_id}</code>\n🔑 OTP Code: <code>{otp}</code>"
+    send_telegram_msg(SUPER_ADMIN_ID, otp_msg)
 
+    return jsonify({"status": "success", "message": "የ OTP ጥያቄዎ ለ Super Admin ተልኳል።"})
+
+# API: Reset Password via OTP
 @app.route('/api/reset-password', methods=['POST'])
 def reset_password():
-    data = request.json or {}
-    user_id = str(data.get('user_id'))
-    otp = str(data.get('otp'))
-    new_pin = str(data.get('new_pin'))
+    data = request.json
+    telegram_id = data.get('telegram_id', '').strip()
+    otp = data.get('otp', '').strip()
+    new_password = data.get('new_password', '').strip()
 
-    if not new_pin or len(new_pin) != 6:
-        return jsonify({'status': 'error', 'message': 'PIN 6 አሃዝ መሆን አለበት!'}), 400
+    if len(new_password) < 6:
+        return jsonify({"status": "error", "message": "አዲሱ የይለፍ ቃል ቢያንስ 6 አሃዝ መሆን አለበት!"}), 400
 
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect("mela_sacco.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT otp_code FROM otps WHERE user_id = ?", (user_id,))
-    record = cursor.fetchone()
+    cursor.execute("SELECT id FROM otp_requests WHERE telegram_id=? AND otp_code=? AND status='pending' ORDER BY id DESC LIMIT 1", (telegram_id, otp))
+    req = cursor.fetchone()
 
-    if record and record[0] == otp:
-        cursor.execute("UPDATE users SET pin = ? WHERE user_id = ?", (new_pin, user_id))
-        cursor.execute("DELETE FROM otps WHERE user_id = ?", (user_id,))
-        cursor.execute("INSERT INTO audit_logs (action, performed_by) VALUES (?, ?)", 
-                       ("Reset PIN via OTP", user_id))
+    if req:
+        cursor.execute("UPDATE users SET password=? WHERE telegram_id=?", (new_password, telegram_id))
+        cursor.execute("UPDATE otp_requests SET status='used' WHERE id=?", (req[0],))
         conn.commit()
         conn.close()
-        return jsonify({'status': 'success', 'message': 'PIN በስኬት ተቀይሯል!'})
-    
+        return jsonify({"status": "success", "message": "የይለፍ ቃልዎ በትክክል ተቀይሯል! አሁን መግባት ይችላሉ።"})
+
     conn.close()
-    return jsonify({'status': 'error', 'message': 'የተሳሳተ OTP code!'}), 400
+    return jsonify({"status": "error", "message": "የተሳሳተ ወይም አገልግሎት ላይ የዋለ OTP ኮድ!"}), 400
 
-# Execution Loop for Polling
-def start_bot():
-    try:
-        bot.infinity_polling(timeout=10, long_polling_timeout=5)
-    except Exception as e:
-        print(f"Bot Polling Error: {e}")
+# Telegram Bot Setup
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    web_app_url = "https://your-domain-or-render-url.com" # Here your hosted Web App URL connects
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton(text="🚀 Mela Sacco Mini App ክፈት", web_app=WebAppInfo(url=web_app_url))]
+    ])
+    welcome_text = (
+        f"<b>እንኳን ወደ መላ ሳኮ (Mela Sacco) በደህና መጡ! 🏦</b>\n\n"
+        f"የአነስተኛ እና መካከለኛ የንግድ እንቅስቃሴዎችን በፋይናንስ ለመደገፍ እና አስተማማኝ የቁጠባና ብድር አገልግሎት በዲጂታል መንገድ ለማቅረብ የተዘጋጀ ሲስተም።\n\n"
+        f"ከታች ያለውን በተን በመጫን አገልግሎቱን ማግኘት ይችላሉ።"
+    )
+    await update.message.reply_text(welcome_text, parse_mode="HTML", reply_markup=keyboard)
 
-if __name__ == '__main__':
-    # Start bot polling in a background thread
-    bot_thread = threading.Thread(target=start_bot, daemon=True)
-    bot_thread.start()
+def main():
+    application = Application.builder().token(BOT_TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
     
-    # Run Flask Web Server on assigned Port
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    print("Mela Sacco Bot & Flask Server Running...")
+    # Flask app start point
+    app.run(host="0.0.0.0", port=5000)
+
+if __name__ == "__main__":
+    main()
