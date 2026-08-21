@@ -13,7 +13,6 @@
             --heading-color: #0d3b66;
             --btn-color: #007bff;
             --btn-text: #ffffff;
-            --accent-color: #f4d35e;
         }
 
         body {
@@ -22,7 +21,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 12px;
-            transition: all 0.3s ease;
         }
 
         h1, h2, h3, h4 { color: var(--heading-color); margin-top: 0; }
@@ -47,7 +45,6 @@
             margin-top: 8px;
             font-size: 15px;
             font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         input, select {
@@ -57,263 +54,264 @@
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 6px;
-            background-color: #fafafa;
         }
 
         .hidden { display: none; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .nav-header { display: flex; justify-content: space-between; align-items: center; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .badge-active { background: #d4edda; color: #155724; }
-        .badge-pending { background: #fff3cd; color: #856404; }
-        .badge-danger { background: #f8d7da; color: #721c24; }
+        .admin-link { font-size: 11px; color: #888; text-align: center; margin-top: 25px; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
 
-    <!-- Header & Customizer Bar -->
-    <div class="card-frame nav-header">
-        <select id="langSelect" onchange="changeLanguage()" style="width: 40%; margin: 0;">
-            <option value="am">🇪🇹 አማርኛ</option>
-            <option value="en">🇬🇧 English</option>
-        </select>
-        <button onclick="toggleThemeCustomizer()" style="width: 55%; margin: 0;">🎨 ገጽታ / Theme</button>
-    </div>
+    <!-- CUSTOMER PLATFORM -->
 
-    <!-- Dynamic Theme Customizer -->
-    <div id="themePanel" class="card-frame hidden">
-        <h4 id="themeTitle">🎨 የገጽታና የቀለም ማበጃ (Full Customizer)</h4>
-        <div class="grid-2">
-            <div>
-                <label id="lblBg">የጀርባ ቀለም (Background):</label>
-                <input type="color" id="bgColor" value="#f4f6f9" onchange="applyCustomTheme()">
-            </div>
-            <div>
-                <label id="lblFrame">የካርድ ቀለም (Frame):</label>
-                <input type="color" id="frameColor" value="#ffffff" onchange="applyCustomTheme()">
-            </div>
-            <div>
-                <label id="lblTxt">የጽሁፍ ቀለም (Text):</label>
-                <input type="color" id="textColor" value="#1a1a1a" onchange="applyCustomTheme()">
-            </div>
-            <div>
-                <label id="lblHeading">የርዕስ ቀለም (Headings):</label>
-                <input type="color" id="headingColor" value="#0d3b66" onchange="applyCustomTheme()">
-            </div>
-            <div>
-                <label id="lblBtn">የበተን ቀለም (Buttons):</label>
-                <input type="color" id="btnColor" value="#007bff" onchange="applyCustomTheme()">
-            </div>
-        </div>
-    </div>
-
-    <!-- Landing & About Mela Sacco Page -->
-    <div id="landingSection" class="card-frame">
-        <h2 id="aboutTitle">🏦 ስለ መላ ሳኮ (About Mela Sacco)</h2>
-        <p id="aboutDesc">
+    <!-- 1. Customer Landing Page -->
+    <div id="customerLanding" class="card-frame">
+        <h2>🏦 ስለ መላ ሳኮ (Mela Sacco)</h2>
+        <p>
             መላ ሳኮ የህብረተሰቡንና የነጋዴዎችን የቁጠባ ባህል ለማሳደግ፣ አነስተኛ እና መካከለኛ የንግድ እንቅስቃሴዎችን በፋይናንስ ለመደገፍ እንዲሁም ፈጣን የብድር አገልግሎት በዲጂታል መንገድ ለማቅረብ የተቋቋመ የህብረት ስራ ማህበር ነው።
         </p>
         <hr>
-        <h3 id="loanTermsTitle">📜 የብድር እና የቁጠባ መመሪያዎች</h3>
+        <h3>📜 የብድር እና የቁጠባ መመሪያዎች</h3>
         <ul>
-            <li id="term1">አባል ለመሆን መታወቂያ፣ TIN እና የንግድ ፈቃድ ማቅረብ ይኖርበታል።</li>
-            <li id="term2">የ 1-to-5 ደረጃ ስርዓት (Level System) እና የቁጠባ መጠን የብድር ጣሪያን ይወስናል።</li>
-            <li id="term3">ዕለታዊ፣ ሳምንታዊ እና ወርሃዊ አነስተኛ ክፍያዎች በወቅቱ መመለስ አለባቸው።</li>
+            <li>አባል ለመሆን መታወቂያ፣ TIN እና የንግድ ፈቃድ ማቅረብ ይኖርበታል።</li>
+            <li>የ 1-to-5 ደረጃ ስርዓት (Level System) እና የቁጠባ መጠን የብድር ጣሪያን ይወስናል።</li>
+            <li>ዕለታዊ፣ ሳምንታዊ እና ወርሃዊ አነስተኛ ክፍያዎች በወቅቱ መመለስ አለባቸው።</li>
         </ul>
         <div class="grid-2" style="margin-top: 15px;">
-            <button onclick="showSection('loginSection')" id="btnGoLogin">🔑 ይግቡ (Login)</button>
-            <button onclick="showSection('registerSection')" id="btnGoRegister" style="background-color: #28a745;">📝 ይመዝገቡ (Register)</button>
+            <button onclick="showSection('customerLogin')" style="background-color: #007bff;">🔑 ይግቡ (Login)</button>
+            <button onclick="showSection('customerRegister')" style="background-color: #28a745;">📝 ይመዝገቡ (Register)</button>
         </div>
+        
+        <!-- Hidden Admin Entry Point -->
+        <div class="admin-link" onclick="showSection('adminLoginSection')">🔐 የሰራተኞች / Admin መግቢያ Portal</div>
     </div>
 
-    <!-- Registration Section -->
-    <div id="registerSection" class="card-frame hidden">
-        <h2 id="regTitle">📝 የአባላት ምዝገባ ቅጽ</h2>
-        
-        <label id="lblFullName">ሙሉ ስም (የስም፣ የአባት እና የአያት ስም):</label>
+    <!-- 2. Customer Registration -->
+    <div id="customerRegister" class="card-frame hidden">
+        <h2>📝 የደንበኞች ምዝገባ ቅጽ</h2>
+        <label>ሙሉ ስም:</label>
         <input type="text" id="regFullName" placeholder="ጋሻዬ በጅጉ ...">
 
-        <label id="lblPhone">የስልክ ቁጥር (+251/09/07):</label>
+        <label>የስልክ ቁጥር (+251/09/07):</label>
         <input type="text" id="regPhone" placeholder="0911223344">
 
-        <label id="lblCity">ከተማ / አካባቢ (GPS/Network):</label>
-        <input type="text" id="regCity" placeholder="ምሳሌ፦ ሐዋሳ, ሲዳማ">
+        <label>ከተማ / አካባቢ:</label>
+        <input type="text" id="regCity" placeholder="ሐዋሳ">
 
-        <label id="lblFan">ብሔራዊ መታወቂያ / FAN (12 አሃዝ):</label>
+        <label>ብሔራዊ መታወቂያ / FAN (12 አሃዝ):</label>
         <input type="text" id="regFan" placeholder="123456789012">
 
-        <label id="lblTin">TIN Number (10 አሃዝ):</label>
+        <label>TIN Number (10 አሃዝ):</label>
         <input type="text" id="regTin" placeholder="1234567890">
 
-        <label id="lblVat">VAT ተመዝጋቢ ነዎት?</label>
-        <select id="regVat">
-            <option value="no">አይደለሁም (No)</option>
-            <option value="yes">ነኝ (Yes)</option>
-        </select>
-
-        <label id="lblPass">የይለፍ ቃል (ቢያንስ 6 አሃዝ):</label>
+        <label>የይለፍ ቃል (ቢያንስ 6 አሃዝ):</label>
         <input type="password" id="regPass" placeholder="******">
 
-        <button onclick="handleRegister()" id="btnSubmitReg">ምዝገባውን ጨርስ</button>
-        <button onclick="showSection('landingSection')" style="background-color: #6c757d;">ተመለስ (Back)</button>
+        <button onclick="handleCustomerRegister()">ምዝገባውን ጨርስ</button>
+        <button onclick="showSection('customerLanding')" style="background-color: #6c757d;">ተመለስ</button>
     </div>
 
-    <!-- Login Section -->
-    <div id="loginSection" class="card-frame hidden">
-        <h2 id="loginTitle">🔑 የመግቢያ ገጽ (Login)</h2>
-        <input type="text" id="loginId" placeholder="የቴሌግራም ID / ስልክ / የዲፓርትመንት ስም">
-        <input type="password" id="loginPass" placeholder="የይለፍ ቃል">
-        <button onclick="handleLogin()" id="btnLoginSubmit">ግበአ (Login)</button>
-        <p style="text-align: center;"><a href="#" onclick="showSection('otpSection')" id="linkForgot">የይለፍ ቃል ረስተዋል? (Forgot Password)</a></p>
-        <button onclick="showSection('landingSection')" style="background-color: #6c757d;">ተመለስ (Back)</button>
+    <!-- 3. Customer Login -->
+    <div id="customerLogin" class="card-frame hidden">
+        <h2>🔑 የደንበኞች መግቢያ</h2>
+        <input type="text" id="custLoginId" placeholder="የስልክ ቁጥር ወይም የቴሌግራም ID">
+        <input type="password" id="custLoginPass" placeholder="የይለፍ ቃል">
+        <button onclick="handleCustomerLogin()">ግበአ (Login)</button>
+        <button onclick="showSection('customerLanding')" style="background-color: #6c757d;">ተመለስ</button>
     </div>
 
-    <!-- OTP Section -->
-    <div id="otpSection" class="card-frame hidden">
-        <h3 id="otpTitle">🔐 የይለፍ ቃል መቀየሪያ (OTP)</h3>
-        <input type="text" id="otpTelegramId" placeholder="የቴሌግራም ID ያስገቡ">
-        <button onclick="requestOTP()" id="btnReqOtp">OTP ለ Super Admin ላክ</button>
+    <!-- 4. Customer Dashboard -->
+    <div id="customerDashboard" class="card-frame hidden">
+        <h3>👋 እንኳን በደህና መጡ! <span id="custName"></span></h3>
+        <p><strong>የአባልነት ደረጃ:</strong> Level <span id="custLevel">1</span></p>
+        <p><strong>የሰነድ ሁኔታ:</strong> <span id="custDocStatus" class="badge badge-active">ማረጋገጫ ላይ</span></p>
         <hr>
-        <input type="text" id="otpCode" placeholder="የደረሰዎትን 6 አሃዝ OTP ያስገቡ">
-        <input type="password" id="newPass" placeholder="አዲስ የይለፍ ቃል (ቢያንስ 6 አሃዝ)">
-        <button onclick="resetPassword()" id="btnResetPass">የይለፍ ቃል ቀይር</button>
-        <button onclick="showSection('loginSection')" style="background-color: #6c757d;">ተመለስ</button>
+        <button onclick="alert('የብድር ጥያቄ ቅጽ በመክፈት ላይ...')">💳 ብድር ይጠይቁ</button>
+        <button onclick="alert('የቁጠባ ሂሳብ በመክፈት ላይ...')">💰 የቁጠባ ሂሳብ ይመልከቱ</button>
+        <button onclick="showSection('customerLanding')" style="background-color: #dc3545;">ውጣ (Logout)</button>
     </div>
 
-    <!-- Dashboards Section -->
-    <div id="dashboardSection" class="hidden">
+
+    <!-- ADMIN & DEPARTMENT PORTAL -->
+
+    <!-- Admin Portal Login -->
+    <div id="adminLoginSection" class="card-frame hidden" style="border: 2px solid #0d3b66;">
+        <h2 style="color: #0d3b66;">🔐 Admin / Staff Portal Login</h2>
+        <label>የሰራተኛ Admin ID / Username:</label>
+        <input type="text" id="adminUserId" placeholder="admin_username">
         
-        <div class="card-frame">
-            <h3 id="dashWelcome">እንኳን በደህና መጡ!</h3>
-            <p><strong>ሚና (Role):</strong> <span id="userRoleBadge" class="badge badge-active"></span></p>
+        <label>የይለፍ ቃል:</label>
+        <input type="password" id="adminUserPass" placeholder="******">
+        
+        <button onclick="handleAdminLogin()" style="background-color: #0d3b66;">የቀጥታ Admin መግቢያ</button>
+        <button onclick="showSection('customerLanding')" style="background-color: #6c757d;">ወደ ደንበኛ ገጽ ተመለስ</button>
+    </div>
+
+    <!-- Admin Master Dashboard -->
+    <div id="adminDashboard" class="hidden">
+        <div class="card-frame" style="background: #0d3b66; color: white;">
+            <h3 style="color: white;">የአስተዳደር ገጽ (Staff Panel)</h3>
+            <p><strong>ሚና / Department:</strong> <span id="adminRoleDisplay"></span></p>
         </div>
 
-        <!-- 1. Super Admin Panel -->
+        <!-- Super Admin Panel -->
         <div id="panelSuperAdmin" class="card-frame hidden">
-            <h3>1. Super Admin Panel</h3>
-            <button onclick="alert('የ 1-to-5 ሎግ በመጫን ላይ...')">1-to-5 የሙሉ ግልፅነት ሎግ (Transparency Log)</button>
-            <button onclick="alert('ብሮድካስት መልእክት ላክ')">ብሮድካስት መልእክት ላክ (1-to-5 / 1-to-1)</button>
+            <h3>👑 Super Admin Control Center</h3>
+            <button onclick="showSection('addAdminSection')" style="background-color: #28a745;">➕ አዲስ Admin / የክፍል ሰራተኛ መዝግብ</button>
+            <button onclick="alert('የ 1-to-5 ሎግ መዝገብ')">🔍 የ 1-to-5 ግልፅነት ሎግ (Audit Log)</button>
+            <button onclick="alert('የሲስተም ብሮድካስት')">📢 ብሮድካስት መልእክት ላክ</button>
         </div>
 
-        <!-- 2. Loan Department Panel -->
+        <!-- Sub-Admin Registration Page (Inside Super Admin) -->
+        <div id="addAdminSection" class="card-frame hidden">
+            <h3>➕ አዲስ Admin / ሰራተኛ መመዝገቢያ</h3>
+            <label>የሰራተኛው ሙሉ ስም:</label>
+            <input type="text" id="staffName" placeholder="አበበ ከበደ">
+            <label>የሰራተኛው ስልክ ቁጥር:</label>
+            <input type="text" id="staffPhone" placeholder="0911000000">
+            <label>የመደብ ክፍሉ (Department Role):</label>
+            <select id="staffRole">
+                <option value="loan_dept">የብድር ክፍል (Loan Dept)</option>
+                <option value="doc_verification">የሰነድ ማረጋገጫ (Document Verification)</option>
+                <option value="daily_collection">ዕለታዊ ሰብሳቢ (Daily Collection)</option>
+                <option value="wm_collection">ሳምንታዊ/ወርሃዊ ሰብሳቢ (WM Collection)</option>
+                <option value="finance_treasury">ፋይናንስና ካዝና (Finance & Treasury)</option>
+            </select>
+            <label>Admin ID / Username:</label>
+            <input type="text" id="staffUsername" placeholder="loan_officer1">
+            <label>የይለፍ ቃል:</label>
+            <input type="password" id="staffPassword" placeholder="******">
+            <button onclick="registerStaff()">ሰራተኛውን መዝግብ</button>
+            <button onclick="showSection('adminDashboard')" style="background-color: #6c757d;">ተመለስ</button>
+        </div>
+
+        <!-- Loan Dept Panel -->
         <div id="panelLoan" class="card-frame hidden">
-            <h3>2. የብድር ክፍል (Loan Department Panel)</h3>
-            <p>የነቁ ብድሮች (Active): <span class="badge badge-active">120</span></p>
-            <p>ማጽደቂያ የሚጠብቁ (Pending): <span class="badge badge-pending">15</span></p>
-            <p>የተጎዱ/የተበላሹ (Defaulted): <span class="badge badge-danger">4</span></p>
+            <h3>💳 የብድር ክፍል Panel</h3>
+            <p>የነቁ ብድሮች: <strong>120</strong></p>
+            <p>ማጽደቂያ የሚጠብቁ: <strong>15</strong></p>
         </div>
 
-        <!-- 3. Document Verification Panel -->
+        <!-- Doc Verification Panel -->
         <div id="panelDocument" class="card-frame hidden">
-            <h3>3. የሰነድ ማረጋገጫ (Document Verification)</h3>
-            <p>የተረጋገጡ ሰነዶች: <span class="badge badge-active">530</span></p>
-            <p>ማረጋገጫ የሚጠብቁ: <span class="badge badge-pending">22</span></p>
+            <h3>📄 የሰነድ ማረጋገጫ Panel</h3>
+            <p>የተረጋገጡ ሰነዶች: <strong>530</strong></p>
         </div>
 
-        <!-- 4. Daily Collection Panel -->
-        <div id="panelDaily" class="card-frame hidden">
-            <h3>4. ዕለታዊ ሰብሳቢዎች (Daily Collection)</h3>
-            <button onclick="alert('የዕለታዊ ክፍያ መመዝገቢያ')">ዕለታዊ ገቢ / ወጪ ይመዝግቡ</button>
-        </div>
-
-        <!-- 5. Weekly & Monthly Collection Panel -->
-        <div id="panelWeeklyMonthly" class="card-frame hidden">
-            <h3>5. ሳምንታዊ እና ወርሃዊ ሰብሳቢዎች (Weekly & Monthly)</h3>
-            <p>የሳምንታዊ እና የወርሃዊ ቁጠባዎች መቆጣጠሪያ።</p>
-        </div>
-
-        <!-- 6. Finance & Treasury Panel -->
-        <div id="panelFinance" class="card-frame hidden">
-            <h3>6. የፋይናንስ እና ካዝና (Finance & Treasury)</h3>
-            <p>የካዝና አጠቃላይ እንቅስቃሴ እና ሀብት መጠን።</p>
-        </div>
-
-        <button onclick="showSection('landingSection')" style="background-color: #dc3545;">ውጣ (Logout)</button>
+        <button onclick="showSection('customerLanding')" style="background-color: #dc3545;">ከ Admin Portal ውጣ</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Auto-detect Location/Network Placeholder
-        window.onload = function() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    document.getElementById('regCity').value = "ሐዋሳ (Auto Detected Network)";
-                });
-            }
-        };
-
         function showSection(id) {
-            ['landingSection', 'registerSection', 'loginSection', 'otpSection', 'dashboardSection'].forEach(s => {
-                document.getElementById(s).classList.add('hidden');
+            const sections = [
+                'customerLanding', 'customerRegister', 'customerLogin', 'customerDashboard',
+                'adminLoginSection', 'adminDashboard', 'addAdminSection'
+            ];
+            sections.forEach(s => {
+                const el = document.getElementById(s);
+                if(el) el.classList.add('hidden');
             });
             document.getElementById(id).classList.remove('hidden');
         }
 
-        function toggleThemeCustomizer() {
-            document.getElementById('themePanel').classList.toggle('hidden');
-        }
+        // Customer Logic
+        async function handleCustomerRegister() {
+            const payload = {
+                full_name: document.getElementById('regFullName').value,
+                phone: document.getElementById('regPhone').value,
+                city: document.getElementById('regCity').value,
+                national_id: document.getElementById('regFan').value,
+                tin_number: document.getElementById('regTin').value,
+                password: document.getElementById('regPass').value,
+                telegram_id: tg.initDataUnsafe?.user?.id || "unknown"
+            };
 
-        function applyCustomTheme() {
-            document.documentElement.style.setProperty('--bg-color', document.getElementById('bgColor').value);
-            document.documentElement.style.setProperty('--frame-bg', document.getElementById('frameColor').value);
-            document.documentElement.style.setProperty('--text-color', document.getElementById('textColor').value);
-            document.documentElement.style.setProperty('--heading-color', document.getElementById('headingColor').value);
-            document.documentElement.style.setProperty('--btn-color', document.getElementById('btnColor').value);
-        }
-
-        function handleRegister() {
-            alert("የምዝገባ ጥያቄዎ በትክክል ተልኳል!");
-            showSection('landingSection');
-        }
-
-        function handleLogin() {
-            const id = document.getElementById('loginId').value;
-            showSection('dashboardSection');
-            document.getElementById('userRoleBadge').innerText = id;
-
-            // Hide all panels then show based on logged role
-            ['panelSuperAdmin', 'panelLoan', 'panelDocument', 'panelDaily', 'panelWeeklyMonthly', 'panelFinance'].forEach(p => {
-                document.getElementById(p).classList.add('hidden');
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
-
-            if (id === 'super_admin' || id === 'admin123') document.getElementById('panelSuperAdmin').classList.remove('hidden');
-            else if (id === 'loan_dept') document.getElementById('panelLoan').classList.remove('hidden');
-            else if (id === 'doc_verification') document.getElementById('panelDocument').classList.remove('hidden');
-            else if (id === 'daily_collection') document.getElementById('panelDaily').classList.remove('hidden');
-            else if (id === 'wm_collection') document.getElementById('panelWeeklyMonthly').classList.remove('hidden');
-            else if (id === 'finance_treasury') document.getElementById('panelFinance').classList.remove('hidden');
-            else document.getElementById('panelLoan').classList.remove('hidden'); // Default for member
+            const data = await res.json();
+            alert(data.message);
+            if (res.ok) showSection('customerLogin');
         }
 
-        function requestOTP() { alert("OTP ጥያቄ ለ Super Admin ተልኳል!"); }
-        function resetPassword() { alert("የይለፍ ቃል ተቀይሯል!"); showSection('loginSection'); }
+        async function handleCustomerLogin() {
+            const payload = {
+                login_id: document.getElementById('custLoginId').value,
+                password: document.getElementById('custLoginPass').value
+            };
 
-        const langData = {
-            am: {
-                aboutTitle: "🏦 ስለ መላ ሳኮ (About Mela Sacco)",
-                regTitle: "📝 የአባላት ምዝገባ ቅጽ",
-                loginTitle: "🔑 የመግቢያ ገጽ (Login)",
-                btnGoLogin: "🔑 ይግቡ (Login)",
-                btnGoRegister: "📝 ይመዝገቡ (Register)"
-            },
-            en: {
-                aboutTitle: "🏦 About Mela Sacco",
-                regTitle: "📝 Member Registration Form",
-                loginTitle: "🔑 Login Page",
-                btnGoLogin: "🔑 Login",
-                btnGoRegister: "📝 Register"
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (res.ok && data.type === 'member') {
+                document.getElementById('custName').innerText = data.user.name;
+                document.getElementById('custLevel').innerText = data.user.level;
+                showSection('customerDashboard');
+            } else {
+                alert(data.message || "ይህ የደንበኛ መለያ አይደለም!");
             }
-        };
+        }
 
-        function changeLanguage() {
-            const lang = document.getElementById('langSelect').value;
-            document.getElementById('aboutTitle').innerText = langData[lang].aboutTitle;
-            document.getElementById('regTitle').innerText = langData[lang].regTitle;
-            document.getElementById('loginTitle').innerText = langData[lang].loginTitle;
-            document.getElementById('btnGoLogin').innerText = langData[lang].btnGoLogin;
-            document.getElementById('btnGoRegister').innerText = langData[lang].btnGoRegister;
+        // Admin Logic
+        async function handleAdminLogin() {
+            const payload = {
+                login_id: document.getElementById('adminUserId').value,
+                password: document.getElementById('adminUserPass').value
+            };
+
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (res.ok && data.type === 'department') {
+                showSection('adminDashboard');
+                document.getElementById('adminRoleDisplay').innerText = data.role;
+
+                ['panelSuperAdmin', 'panelLoan', 'panelDocument'].forEach(p => {
+                    document.getElementById(p).classList.add('hidden');
+                });
+
+                if (data.role === 'super_admin') document.getElementById('panelSuperAdmin').classList.remove('hidden');
+                else if (data.role === 'loan_dept') document.getElementById('panelLoan').classList.remove('hidden');
+                else if (data.role === 'doc_verification') document.getElementById('panelDocument').classList.remove('hidden');
+            } else {
+                alert("የተሳሳተ Admin ID ወይም የይለፍ ቃል!");
+            }
+        }
+
+        // Register Sub-Admin via Super Admin
+        async function registerStaff() {
+            const payload = {
+                name: document.getElementById('staffName').value,
+                phone: document.getElementById('staffPhone').value,
+                role: document.getElementById('staffRole').value,
+                username: document.getElementById('staffUsername').value,
+                password: document.getElementById('staffPassword').value
+            };
+
+            const res = await fetch('/api/admin/create-staff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            alert(data.message);
+            if(res.ok) showSection('adminDashboard');
         }
     </script>
 </body>
