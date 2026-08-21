@@ -19,7 +19,7 @@ def init_db():
     conn = sqlite3.connect("mela_sacco.db")
     cursor = conn.cursor()
     
-    # Users Table
+    # Customer / Member Users Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,24 +37,27 @@ def init_db():
         )
     ''')
     
-    # Department Credentials Table
+    # Department & Staff Credentials Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS department_passwords (
             dept_name TEXT PRIMARY KEY,
-            password TEXT
+            password TEXT,
+            full_name TEXT,
+            phone TEXT,
+            role TEXT
         )
     ''')
     
-    # Default Passwords
+    # Default Department Credentials Setup
     default_depts = [
-        ('super_admin', 'admin123'),
-        ('loan_dept', 'loan123'),
-        ('doc_verification', 'doc123'),
-        ('daily_collection', 'daily123'),
-        ('wm_collection', 'wm123'),
-        ('finance_treasury', 'fin123')
+        ('super_admin', 'admin123', 'Super Admin Master', '0911000000', 'super_admin'),
+        ('loan_dept', 'loan123', 'Loan Manager', '0911000001', 'loan_dept'),
+        ('doc_verification', 'doc123', 'Verification Officer', '0911000002', 'doc_verification'),
+        ('daily_collection', 'daily123', 'Daily Collector', '0911000003', 'daily_collection'),
+        ('wm_collection', 'wm123', 'WM Collector', '0911000004', 'wm_collection'),
+        ('finance_treasury', 'fin123', 'Finance Head', '0911000005', 'finance_treasury')
     ]
-    cursor.executemany("INSERT OR IGNORE INTO department_passwords VALUES (?, ?)", default_depts)
+    cursor.executemany("INSERT OR IGNORE INTO department_passwords VALUES (?, ?, ?, ?, ?)", default_depts)
 
     # OTP Requests Table
     cursor.execute('''
@@ -67,7 +70,7 @@ def init_db():
         )
     ''')
     
-    # System Logs Table
+    # System Audit Logs Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS system_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,7 +97,7 @@ def send_telegram_msg(chat_id, text):
     except Exception as e:
         print(f"Telegram Notification Error: {e}")
 
-# API: Member Registration
+# API: Normal Customer Registration
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
@@ -137,7 +140,40 @@ def register():
     except sqlite3.IntegrityError:
         return jsonify({"status": "error", "message": "ይህ የቴሌግራም መለያ ወይም ስልክ ቁጥር አስቀድሞ ተመዝግቧል!"}), 400
 
-# API: Department & User Login
+# API: Sub-Admin / Staff Registration (Exclusively by Super Admin)
+@app.route('/api/admin/create-staff', methods=['POST'])
+def create_staff():
+    data = request.json
+    name = data.get('name', '').strip()
+    phone = data.get('phone', '').strip()
+    role = data.get('role', '').strip()
+    username = data.get('username', '').strip()
+    password = data.get('password', '').strip()
+
+    if not name or not phone or not username or not password or not role:
+        return jsonify({"status": "error", "message": "እባክዎን ሁሉንም መረጃዎች በትክክል ይሙሉ!"}), 400
+
+    try:
+        conn = sqlite3.connect("mela_sacco.db")
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            "INSERT INTO department_passwords (dept_name, password, full_name, phone, role) VALUES (?, ?, ?, ?, ?)",
+            (username, password, name, phone, role)
+        )
+        
+        cursor.execute(
+            "INSERT INTO system_logs (action, performed_by) VALUES (?, ?)", 
+            (f"Created staff account: {username} ({role}) - Phone: {phone} - Name: {name}", "super_admin")
+        )
+        
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success", "message": f"ሰራተኛው '{name}' በ Admin ID '{username}' በትክክል ተመዝግቧል!"})
+    except sqlite3.IntegrityError:
+        return jsonify({"status": "error", "message": "ይህ Admin ID/Username አስቀድሞ ስራ ላይ ውሏል!"}), 400
+
+# API: Department Staff & Customer Login Separator
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
@@ -147,12 +183,20 @@ def login():
     conn = sqlite3.connect("mela_sacco.db")
     cursor = conn.cursor()
 
-    cursor.execute("SELECT dept_name FROM department_passwords WHERE dept_name=? AND password=?", (login_id, password))
+    # 1. Check if login credentials belong to Staff / Admin
+    cursor.execute("SELECT dept_name, role, full_name FROM department_passwords WHERE dept_name=? AND password=?", (login_id, password))
     dept = cursor.fetchone()
     if dept:
         conn.close()
-        return jsonify({"status": "success", "type": "department", "role": dept[0]})
+        return jsonify({
+            "status": "success", 
+            "type": "department", 
+            "username": dept[0],
+            "role": dept[1],
+            "full_name": dept[2]
+        })
 
+    # 2. Check if login credentials belong to Normal Customer
     cursor.execute("SELECT id, full_name, role, level, documents_status FROM users WHERE (telegram_id=? OR phone=?) AND password=?", (login_id, login_id, password))
     user = cursor.fetchone()
     conn.close()
