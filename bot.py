@@ -4,7 +4,7 @@ import re
 import sqlite3
 import threading
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
@@ -133,7 +133,7 @@ def register():
         msg = f"<b>🆕 አዲስ የአባልነት ምዝገባ ጥያቄ!</b>\n\n👤 ስም: {full_name}\n📞 ስልክ: {phone}\n📍 ቦታ: {city}\n🆔 FAN: {national_id}\n📄 TIN: {tin_number}"
         send_telegram_msg(SUPER_ADMIN_ID, msg)
 
-        return jsonify({"status": "success", "message": "ምዝገባዎ ተጠናቅቋል! ሰነዶችዎ ተረጋግጠው እስኪፀድቁ ድረስ ይቆዩ።"})
+        return jsonify({"status": "success", "message": "ምዝገባዎ ተጠናቅቋል! ሰነዶችዎ ተረጋግተው እስኪፀድቁ ድረስ ይቆዩ።"})
     except sqlite3.IntegrityError:
         return jsonify({"status": "error", "message": "ይህ የቴሌግራም መለያ ወይም ስልክ ቁጥር አስቀድሞ ተመዝግቧል!"}), 400
 
@@ -216,10 +216,10 @@ def reset_password():
     conn.close()
     return jsonify({"status": "error", "message": "የተሳሳተ ወይም አገልግሎት ላይ የዋለ OTP ኮድ!"}), 400
 
-# Health check route for Render
+# Home route: Serves the Web App index.html
 @app.route('/')
 def home():
-    return "Mela Sacco Web App Server is Active!"
+    return render_template('index.html')
 
 # Telegram Bot Setup
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
