@@ -3,72 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mela Sacco Digital System</title>
-    <!-- Telegram WebApp SDK -->
+    <title>Mela Sacco Digital Banking System</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg: #0b0f19;
-            --card-bg: #151c2c;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
             --accent: #2563eb;
             --text-main: #f8fafc;
             --text-sub: #94a3b8;
-            --border: #1e293b;
+            --border: #334155;
             --green: #10b981;
             --red: #ef4444;
             --warning: #f59e0b;
         }
 
         .light-mode {
-            --bg: #f8fafc;
+            --bg: #f1f5f9;
             --card-bg: #ffffff;
             --text-main: #0f172a;
             --text-sub: #64748b;
-            --border: #e2e8f0;
+            --border: #cbd5e1;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            display: flex; flex-direction: column;
-            min-height: 100vh; width: 100vw; overflow-x: hidden;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; width: 100vw; overflow-x: hidden; }
 
         header {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border);
+            background-color: var(--card-bg); border-bottom: 1px solid var(--border);
             padding: 12px 15px; position: sticky; top: 0; z-index: 100;
         }
 
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .logo { font-size: 18px; font-weight: 800; color: var(--accent); }
 
         .menu-selector {
-            width: 100%; padding: 12px; background: var(--bg);
-            color: var(--text-main); border: 1px solid var(--accent);
-            border-radius: 8px; font-size: 14px; font-weight: 700; outline: none;
+            width: 100%; padding: 10px; background: var(--bg); color: var(--text-main);
+            border: 1px solid var(--accent); border-radius: 8px; font-size: 13px; font-weight: 700; outline: none;
         }
 
-        .main-container { flex: 1; padding: 15px; width: 100%; }
-        .panel { display: none; width: 100%; }
-        .panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+        .container { padding: 15px; width: 100%; }
+        .panel { display: none; }
+        .panel.active { display: block; animation: fadeIn 0.2s ease-in; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card { background-color: var(--card-bg); border: 1px solid var(--border); padding: 15px; border-radius: 10px; }
-        .card h5 { color: var(--text-sub); font-size: 11px; text-transform: uppercase; margin-bottom: 5px; }
-        .card .num { font-size: 20px; font-weight: 700; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border); padding: 12px; border-radius: 10px; }
+        .card h5 { color: var(--text-sub); font-size: 11px; text-transform: uppercase; }
+        .card .num { font-size: 18px; font-weight: 700; margin-top: 4px; }
 
-        .form-box, .table-box {
-            background-color: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 10px; padding: 15px; margin-bottom: 15px; width: 100%; overflow-x: auto;
-        }
-
-        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
-        .form-group label { font-size: 12px; color: var(--text-sub); font-weight: 600; }
+        .box { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 15px; overflow-x: auto; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+        .form-group label { font-size: 11px; color: var(--text-sub); font-weight: 600; }
         .form-group input, .form-group select {
             padding: 10px; border-radius: 6px; border: 1px solid var(--border);
             background: var(--bg); color: var(--text-main); font-size: 13px; outline: none;
@@ -78,29 +65,23 @@
         th, td { padding: 10px 6px; border-bottom: 1px solid var(--border); }
         th { color: var(--text-sub); }
 
-        .badge { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; display: inline-block; }
+        .badge { padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 700; }
         .badge.active { background: rgba(16, 185, 129, 0.2); color: var(--green); }
         .badge.pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
         .badge.blocked { background: rgba(239, 68, 68, 0.2); color: var(--red); }
 
-        .btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
-        .btn {
-            padding: 8px 12px; border-radius: 6px; border: none; font-weight: 600;
-            cursor: pointer; background: var(--accent); color: #fff; font-size: 12px;
-        }
+        .btn { padding: 8px 12px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; background: var(--accent); color: #fff; font-size: 12px; }
         .btn-success { background: var(--green); }
         .btn-warning { background: var(--warning); }
         .btn-danger { background: var(--red); }
-        .btn-sm { padding: 5px 8px; font-size: 11px; }
+        .btn-sm { padding: 4px 8px; font-size: 11px; }
 
-        /* IMAGE MODAL ZOOM VIEWER */
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0;
-            width: 100%; height: 100%; background: rgba(0,0,0,0.9);
+            width: 100%; height: 100%; background: rgba(0,0,0,0.85);
             justify-content: center; align-items: center; flex-direction: column;
         }
-        .modal img { max-width: 90%; max-height: 70%; transition: transform 0.25s ease; border-radius: 8px; }
-        .modal-controls { margin-top: 15px; display: flex; gap: 10px; }
+        .modal img { max-width: 90%; max-height: 70%; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -108,173 +89,133 @@
     <header>
         <div class="header-top">
             <div class="logo">⚡ MELA SACCO</div>
-            <button onclick="toggleTheme()" style="background:var(--border); color:var(--text-main); border:none; padding:5px 10px; border-radius:6px; font-size:12px;">🌓 Theme</button>
+            <button onclick="toggleTheme()" style="background:var(--border); color:var(--text-main); border:none; padding:4px 8px; border-radius:6px; font-size:11px;">🌓 Theme</button>
         </div>
 
         <select class="menu-selector" onchange="switchPanel(this.value)">
-            <optgroup label="የህዝብ ገፆች">
-                <option value="info">ℹ️ ስለ መላ ሳኮ (Info)</option>
-                <option value="register">📝 የአባላት ምዝገባ (Member Registration)</option>
+            <optgroup label="የአባል አገልግሎት">
+                <option value="passbook">📖 የራሴ ደብተር (የብድርና ቁጠባ ክትትል)</option>
+                <option value="register">📝 አዲስ ተመዝጋቢ (Registration)</option>
             </optgroup>
-            <optgroup label="የ 6ቱ አድሚኖች መቆጣጠሪያ ፓናል">
-                <option value="super_admin">👑 1. Super Admin Panel (Master Control)</option>
-                <option value="doc_dept">📑 2. Verification Panel (Document Review)</option>
-                <option value="loan_dept">💰 3. Loan Dept Panel (Approvals & Risk)</option>
-                <option value="daily_dept">🏃 4. Daily Collection Panel</option>
-                <option value="monthly_dept">📅 5. Weekly/Monthly Panel</option>
-                <option value="finance_dept">🏦 6. Treasury & Finance Panel</option>
+            <optgroup label="የአድሚን መቆጣጠሪያዎች (Admin System)">
+                <option value="super_admin">👑 Super Admin Master Control</option>
+                <option value="doc_dept">📑 1. Verification Admin Panel</option>
+                <option value="loan_dept">💰 2. Loan Dept Admin Panel</option>
+                <option value="daily_dept">🏃 3. Daily Collection Panel</option>
+                <option value="finance_dept">🏦 4. Treasury & Finance Panel</option>
             </optgroup>
         </select>
     </header>
 
-    <div class="main-container">
+    <div class="container">
 
-        <!-- 1. INFO PANEL -->
-        <div id="info" class="panel active">
-            <div class="table-box">
-                <h3 style="margin-bottom:10px;">🏛️ ስለ መላ ሳኮ አሰራር</h3>
-                <p style="line-height:1.6; color:var(--text-sub); font-size:13px;">
-                    መላ ሳኮ አባላት በየቀኑ፣ በሳምንት ወይም በወር የሚቆጥቡበት እና በቁጠባ ደረጃቸው መሰረት በ90 ወይም 100 ቀን የሚመለስ የብድር አገልግሎት የሚያገኙበት ዲጂታል ሲስተም ነው።
-                </p>
+        <!-- 1. USER PASSBOOK / DEBTER (የራሴ ደብተር) -->
+        <div id="passbook" class="panel active">
+            <div class="grid-2">
+                <div class="card"><h5>ጠቅላላ ብድር</h5><div class="num" id="user-total-loan">50,000 ETB</div></div>
+                <div class="card"><h5>የተከፈለ ብድር</h5><div class="num" style="color:var(--green)" id="user-paid-loan">15,000 ETB</div></div>
+                <div class="card"><h5>የሚቀረው ዕዳ</h5><div class="num" style="color:var(--red)" id="user-remaining-loan">35,000 ETB</div></div>
+                <div class="card"><h5>የቀረው ቀን</h5><div class="num" id="user-days-left">65 ቀን</div></div>
+            </div>
+
+            <div class="box">
+                <h3>📖 የብድር ክፍያ መከታተያ ደብተር</h3>
+                <p style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">የዕለታዊ/ሳምንታዊ ክፍያዎች ዝርዝር እና የክፍያ ታሪክ፡</p>
+                <table>
+                    <thead>
+                        <tr><th>ተ.ቁ</th><th>ቀን</th><th>የተከፈለው መጠን</th><th>የክፍያ አይነት</th><th>ሁኔታ</th></tr>
+                    </thead>
+                    <tbody id="passbook-history">
+                        <tr><td>1</td><td>2026-08-01</td><td>5,000 ETB</td><td>Bank Transfer</td><td><span class="badge active">Confirmed</span></td></tr>
+                        <tr><td>2</td><td>2026-08-10</td><td>5,000 ETB</td><td>Cash / Field</td><td><span class="badge active">Confirmed</span></td></tr>
+                        <tr><td>3</td><td>2026-08-20</td><td>5,000 ETB</td><td>Telebirr</td><td><span class="badge active">Confirmed</span></td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- 2. MEMBER REGISTRATION FORM -->
+        <!-- 2. MEMBER REGISTRATION -->
         <div id="register" class="panel">
-            <div class="form-box">
-                <h3 style="margin-bottom: 15px;">📝 የአባላት ምዝገባ ቅጽ</h3>
-                <form id="memberForm" onsubmit="registerMember(event)">
+            <div class="box">
+                <h3>📝 አዲስ ተመዝጋቢ አባል Form</h3>
+                <form onsubmit="handleRegistration(event)">
                     <div class="form-group">
                         <label>ሙሉ ስም</label>
-                        <input type="text" id="reg_name" placeholder="አበበ በቀለ ቻላ" required>
+                        <input type="text" id="reg_name" required placeholder="አበበ በቀለ ቻላ">
                     </div>
                     <div class="form-group">
                         <label>ስልክ ቁጥር</label>
-                        <input type="tel" id="reg_phone" placeholder="+251911223344" required>
+                        <input type="tel" id="reg_phone" required placeholder="+251911223344">
                     </div>
                     <div class="form-group">
-                        <label>አድራሻ (ከተማ መምረጫ)</label>
+                        <label>ከተማ / አድራሻ</label>
                         <select id="reg_city" required>
-                            <option value="">ከተማ ይምረጡ...</option>
                             <option value="ሐዋሳ">ሐዋሳ</option>
                             <option value="አዲስ አበባ">አዲስ አበባ</option>
                             <option value="ድሬዳዋ">ድሬዳዋ</option>
                             <option value="ባህር ዳር">ባህር ዳር</option>
-                            <option value="መቀሌ">መቀሌ</option>
-                            <option value="አዳማ">አዳማ</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>ብሔራዊ መታወቂያ (FAN ID - 12 Digits)</label>
-                        <input type="text" id="reg_fan" maxlength="12" placeholder="123456789012" required>
+                        <input type="text" id="reg_fan" maxlength="12" required placeholder="123456789012">
                     </div>
                     <div class="form-group">
                         <label>TIN Number (10 Digits)</label>
-                        <input type="text" id="reg_tin" maxlength="10" placeholder="1098765432" required>
+                        <input type="text" id="reg_tin" maxlength="10" required placeholder="1098765432">
                     </div>
                     <div class="form-group">
-                        <label>VAT ተመዝጋቢነት</label>
-                        <select id="reg_vat"><option value="የለኝም">የለኝም</option><option value="አለኝ">አለኝ</option></select>
+                        <label>የመታወቂያ ፎቶ</label>
+                        <input type="file" required accept="image/*">
                     </div>
                     <div class="form-group">
-                        <label>የመታወቂያ ፎቶ (ID Card Photo Upload)</label>
-                        <input type="file" id="reg_id_pic" accept="image/*" required>
-                    </div>
-                    <div class="form-group">
-                        <label>የንግድ ፈቃድ / ሰነድ ፎቶ (Trade License Photo)</label>
-                        <input type="file" id="reg_license_pic" accept="image/*" required>
+                        <label>የንግድ ፈቃድ ፎቶ</label>
+                        <input type="file" required accept="image/*">
                     </div>
                     <button class="btn" type="submit" style="width:100%; margin-top:10px;">መዝግብ እና ሰነዶችን ላክ</button>
                 </form>
             </div>
         </div>
 
-        <!-- 3. SUPER ADMIN PANEL -->
+        <!-- 3. SUPER ADMIN MASTER CONTROL -->
         <div id="super_admin" class="panel">
             <div class="grid-2">
-                <div class="card"><h5>ጠቅላላ አድሚኖች</h5><div class="num" id="stat-admins">5</div></div>
-                <div class="card"><h5>ተመዝጋቢዎች</h5><div class="num" id="stat-members">1,240</div></div>
+                <div class="card"><h5>አድሚኖች</h5><div class="num" id="stat-adm-count">3</div></div>
+                <div class="card"><h5>አባላት</h5><div class="num" id="stat-mem-count">1</div></div>
             </div>
 
-            <!-- APPOINT NEW ADMIN SECTION -->
-            <div class="form-box">
-                <h4>👑 አዲስ አድሚን ማሾሚያ (Appoint Admin)</h4>
-                <form onsubmit="appointAdmin(event)" style="margin-top:10px;">
+            <!-- APPOINT ADMIN -->
+            <div class="box">
+                <h4>👑 አዲስ አድሚን መሾሚያ (Appoint Admin)</h4>
+                <form onsubmit="handleAppointAdmin(event)" style="margin-top:10px;">
+                    <div class="form-group"><label>የአድሚን ስም</label><input type="text" id="app_name" required></div>
+                    <div class="form-group"><label>User ID</label><input type="text" id="app_id" placeholder="ADM-01" required></div>
+                    <div class="form-group"><label>IP Address</label><input type="text" id="app_ip" placeholder="192.168.1.1" required></div>
                     <div class="form-group">
-                        <label>የሰራተኛው/አድሚኑ ስም</label>
-                        <input type="text" id="adm_name" placeholder="እስክንድር ተስፋዬ" required>
-                    </div>
-                    <div class="form-group">
-                        <label>User ID / Username</label>
-                        <input type="text" id="adm_user" placeholder="ADM-LOAN-05" required>
-                    </div>
-                    <div class="form-group">
-                        <label>የአይፒ አድሬስ (IP Address)</label>
-                        <input type="text" id="adm_ip" placeholder="192.168.1.45" required>
-                    </div>
-                    <div class="form-group">
-                        <label>የሚሾምበት ዲፓርትመንት</label>
-                        <select id="adm_dept" required>
-                            <option value="Loan Department">Loan Department</option>
-                            <option value="Document Verification">Document Verification</option>
+                        <label>ዲፓርትመንት</label>
+                        <select id="app_dept">
+                            <option value="Verification Admin">Verification Admin</option>
+                            <option value="Loan Dept Admin">Loan Dept Admin</option>
                             <option value="Daily Collection">Daily Collection</option>
-                            <option value="Weekly/Monthly">Weekly/Monthly</option>
-                            <option value="Finance & Treasury">Finance & Treasury</option>
+                            <option value="Finance Admin">Finance Admin</option>
                         </select>
                     </div>
-                    <button class="btn btn-success" type="submit" style="width:100%;">አድሚኑን ሾም (Appoint)</button>
+                    <button class="btn btn-success" type="submit" style="width:100%;">አድሚኑን ሾም</button>
                 </form>
             </div>
 
-            <!-- ADMIN LIST TABLE -->
-            <div class="table-box">
-                <h4>👑 የተሾሙ አድሚኖች ዝርዝር እና መቆጣጠሪያ</h4>
-                <table style="margin-top:10px;">
-                    <thead>
-                        <tr><th>ስም / ID</th><th>ዲፓርትመንት</th><th>IP Address</th><th>ሁኔታ</th><th>ተግባር</th></tr>
-                    </thead>
-                    <tbody id="admin-table-body">
-                        <tr>
-                            <td>ዮሐንስ<br><small>ADM-LOAN-01</small></td>
-                            <td>Loan Dept</td>
-                            <td>192.168.1.10</td>
-                            <td><span class="badge active">Active</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-warning btn-sm" onclick="sendMsg('ዮሐንስ')">Msg</button>
-                                    <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Block</button>
-                                    <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 4. VERIFICATION PANEL (WITH PHOTO ZOOM VIEWER) -->
-        <div id="doc_dept" class="panel">
-            <div class="table-box">
-                <h3>📑 የተመዝጋቢዎች ሰነድ ማረጋገጫ (Verification)</h3>
-                <p style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">እዚህ የተላኩትን መታወቂያዎች እና ንግድ ፈቃዶች ዙም አድርገህ በማየት ማረጋገጥ ትችላለህ።</p>
+            <div class="box">
+                <h4>👑 የአድሚኖች ዝርዝር እና መቆጣጠሪያ</h4>
                 <table>
-                    <thead>
-                        <tr><th>አመልካች / ከተማ</th><th>FAN / TIN</th><th>የተላኩ ሰነዶች (Photos)</th><th>ሁኔታ</th><th>ተግባር</th></tr>
-                    </thead>
-                    <tbody id="doc-table-body">
+                    <thead><tr><th>ስም/ID</th><th>Role</th><th>IP</th><th>Action</th></tr></thead>
+                    <tbody id="admin-list-table">
                         <tr>
-                            <td>ኬብሮን ተስፋዬ<br><small>ሐዋሳ</small></td>
-                            <td>123456789012<br><small>TIN: 1098765432</small></td>
+                            <td>ካሳሁን<br><small>ADM-DOC-01</small></td>
+                            <td>Verification</td>
+                            <td>192.168.1.20</td>
                             <td>
-                                <button class="btn btn-sm" onclick="viewPhoto('https://via.placeholder.com/600x400?text=National+ID+Photo')">መታወቂያ 🔍</button>
-                                <button class="btn btn-sm" onclick="viewPhoto('https://via.placeholder.com/600x400?text=Trade+License+Photo')">ንግድ ፈቃድ 🔍</button>
-                            </td>
-                            <td><span class="badge pending">Pending</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-success btn-sm" onclick="approveDoc(this)">Approve & Pass</button>
-                                    <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Reject</button>
-                                </div>
+                                <button class="btn btn-warning btn-sm" onclick="sendDirectMsg('ካሳሁን')">Msg</button>
+                                <button class="btn btn-danger btn-sm" onclick="removeRow(this)">Delete</button>
                             </td>
                         </tr>
                     </tbody>
@@ -282,41 +223,33 @@
             </div>
         </div>
 
-        <!-- 5. LOAN DEPT PANEL -->
-        <div id="loan_dept" class="panel">
-            <div class="grid-2">
-                <div class="card"><h5>የተሰጠ ብድር</h5><div class="num">4.2M</div></div>
-                <div class="card"><h5>ያልተመለሰ</h5><div class="num" style="color:var(--red)">850K</div></div>
+        <!-- 4. VERIFICATION ADMIN PANEL -->
+        <div id="doc_dept" class="panel">
+            <div class="box">
+                <h3>📑 ሰነድ ማረጋገጫ (Pending Verification)</h3>
+                <table>
+                    <thead><tr><th>አመልካች</th><th>FAN/TIN</th><th>ሰነዶች</th><th>Action</th></tr></thead>
+                    <tbody id="verification-table-body">
+                        <!-- Dynamic Registration Content -->
+                    </tbody>
+                </table>
             </div>
+        </div>
 
-            <div class="table-box">
-                <h3>💰 የብድር ማጽደቂያ እና መከታተያ ፓናል</h3>
-                <table style="margin-top:10px;">
-                    <thead>
-                        <tr><th>ተበዳሪ</th><th>የተጠየቀ ብድር</th><th>ሁኔታ</th><th>ተግባር</th></tr>
-                    </thead>
-                    <tbody id="loan-table-body">
+        <!-- 5. LOAN DEPT ADMIN PANEL -->
+        <div id="loan_dept" class="panel">
+            <div class="box">
+                <h3>💰 የብድር ማጽደቂያ እና መቆጣጠሪያ</h3>
+                <table>
+                    <thead><tr><th>ተበዳሪ</th><th>መጠን</th><th>ሁኔታ</th><th>Action</th></tr></thead>
+                    <tbody id="loan-admin-table">
                         <tr>
-                            <td>ዮሐንስ ገብሬ<br><small>ሐዋሳ</small></td>
+                            <td>ዮሐንስ ገብሬ</td>
                             <td>50,000 ETB</td>
                             <td><span class="badge active">Active</span></td>
                             <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-warning btn-sm" onclick="sendMsg('ዮሐንስ ገብሬ')">Msg</button>
-                                    <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Block</button>
-                                    <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>ኬብሮን ተስፋዬ<br><small>ሐዋሳ</small></td>
-                            <td>100,000 ETB</td>
-                            <td><span class="badge pending">Pending Approval</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-success btn-sm" onclick="approveLoan(this)">Approve (Active)</button>
-                                    <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Reject</button>
-                                </div>
+                                <button class="btn btn-warning btn-sm" onclick="sendDirectMsg('ዮሐንስ ገብሬ')">Msg</button>
+                                <button class="btn btn-danger btn-sm" onclick="blockUser(this)">Block</button>
                             </td>
                         </tr>
                     </tbody>
@@ -324,31 +257,25 @@
             </div>
         </div>
 
-        <!-- OTHER PANELS -->
-        <div id="daily_dept" class="panel">
-            <div class="table-box"><h3>🏃 Daily Collection Panel</h3><p style="color:var(--text-sub);">የዕለታዊ ሰብሳቢዎች ገጽ።</p></div>
-        </div>
-        <div id="monthly_dept" class="panel">
-            <div class="table-box"><h3>📅 Weekly & Monthly Savings</h3><p style="color:var(--text-sub);">የቁጠባዎች ገጽ።</p></div>
-        </div>
-        <div id="finance_dept" class="panel">
-            <div class="table-box"><h3>🏦 Treasury & Finance Panel</h3><p style="color:var(--text-sub);">የካዝና ገጽ።</p></div>
-        </div>
+        <!-- 6. OTHER PANELS -->
+        <div id="daily_dept" class="panel"><div class="box"><h3>🏃 Daily Collection</h3><p>የዕለታዊ ሰብሳቢዎች መቆጣጠሪያ</p></div></div>
+        <div id="finance_dept" class="panel"><div class="box"><h3>🏦 Finance & Treasury</h3><p>የካዝና እና ፋይናንስ መቆጣጠሪያ</p></div></div>
 
     </div>
 
     <!-- IMAGE ZOOM MODAL -->
     <div id="imgModal" class="modal">
-        <img id="modalImg" src="" alt="Document Preview">
-        <div class="modal-controls">
-            <button class="btn" onclick="zoomImage(1.2)">Zoom In ➕</button>
-            <button class="btn" onclick="zoomImage(0.8)">Zoom Out ➖</button>
-            <button class="btn btn-danger" onclick="closeModal()">ዝጋ (Close)</button>
+        <img id="modalImg" src="" alt="Document">
+        <div style="margin-top:10px; display:flex; gap:10px;">
+            <button class="btn btn-danger" onclick="closeModal()">ዝጋ</button>
         </div>
     </div>
 
     <script>
-        // TELEGRAM SDK INIT
+        // TELEGRAM BOT CONFIGURATION
+        const BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"; // እዚህ ጋር የቦትክን Token አስገባ
+        const ADMIN_CHAT_ID = "YOUR_ADMIN_CHAT_ID";   // እዚህ ጋር የራስህን/የግሩፑን Telegram Chat ID አስገባ
+
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
@@ -361,114 +288,130 @@
 
         function toggleTheme() { document.body.classList.toggle('light-mode'); }
 
-        // MEMBER REGISTRATION LOGIC
-        function registerMember(e) {
+        // FUNCTION TO SEND DIRECT TELEGRAM ALERT TO ADMIN
+        function sendTelegramNotification(text) {
+            if(BOT_TOKEN === "YOUR_TELEGRAM_BOT_TOKEN") return; // ቦት ያልተሞላ ከሆነ ይተወዋል
+            
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: ADMIN_CHAT_ID,
+                    text: text,
+                    parse_mode: 'Markdown'
+                })
+            }).catch(err => console.error("Telegram Notification Error:", err));
+        }
+
+        // DYNAMIC REGISTRATION LOGIC WITH DUAL NOTIFICATION
+        function handleRegistration(e) {
             e.preventDefault();
             const name = document.getElementById('reg_name').value;
+            const phone = document.getElementById('reg_phone').value;
             const city = document.getElementById('reg_city').value;
             const fan = document.getElementById('reg_fan').value;
             const tin = document.getElementById('reg_tin').value;
 
-            // Add to Verification Table Dynamically
-            const docBody = document.getElementById('doc-table-body');
-            const newRow = `
-                <tr>
-                    <td>${name}<br><small>${city}</small></td>
-                    <td>${fan}<br><small>TIN: ${tin}</small></td>
-                    <td>
-                        <button class="btn btn-sm" onclick="viewPhoto('https://via.placeholder.com/600x400?text=${encodeURIComponent(name)}+ID')">መታወቂያ 🔍</button>
-                        <button class="btn btn-sm" onclick="viewPhoto('https://via.placeholder.com/600x400?text=${encodeURIComponent(name)}+License')">ንግድ ፈቃድ 🔍</button>
-                    </td>
-                    <td><span class="badge pending">Pending</span></td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn btn-success btn-sm" onclick="approveDoc(this)">Approve & Pass</button>
-                            <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Reject</button>
-                        </div>
-                    </td>
-                </tr>
+            // 1. SYSTEM TABLE UPDATE (VERIFICATION PANEL)
+            const vBody = document.getElementById('verification-table-body');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${name}<br><small>${city}</small></td>
+                <td>${fan}<br><small>TIN: ${tin}</small></td>
+                <td>
+                    <button class="btn btn-sm" onclick="openPhoto('https://via.placeholder.com/500x300?text=National+ID')">ID 🔍</button>
+                    <button class="btn btn-sm" onclick="openPhoto('https://via.placeholder.com/500x300?text=Trade+License')">License 🔍</button>
+                </td>
+                <td>
+                    <button class="btn btn-success btn-sm" onclick="approveMember(this, '${name}')">Approve</button>
+                    <button class="btn btn-danger btn-sm" onclick="removeRow(this)">Reject</button>
+                </td>
             `;
-            docBody.innerHTML += newRow;
-            alert('ምዝገባዎ ተጠናቋል! መረጃዎ እና ሰነዶችዎ ለVerification Panel ተልከዋል።');
-            document.getElementById('memberForm').reset();
+            vBody.appendChild(row);
+
+            // 2. DIRECT TELEGRAM ALERT TO ADMIN
+            const telegramMsg = `🚨 *አዲስ ተመዝጋቢ አባል!*\n\n👤 *ስም:* ${name}\n📲 *ስልክ:* ${phone}\n📍 *ከተማ:* ${city}\n🆔 *FAN ID:* ${fan}\n📄 *TIN:* ${tin}\n\n⚠️ _እባክዎን WebApp ውስጥ Verification Panel ገብተው ሰነዱን ያረጋገጡ!_`;
+            sendTelegramNotification(telegramMsg);
+
+            alert('ምዝገባዎ ተጠናቋል! መረጃዎ በሲስተሙ Verification Panel እና ቀጥታ ለአድሚኑ ቴሌግራም ተልኳል።');
+            e.target.reset();
+            switchPanel('doc_dept');
+        }
+
+        // APPROVE MEMBER & PASS TO LOAN DEPT
+        function approveMember(btn, name) {
+            btn.closest('tr').remove();
+            const loanBody = document.getElementById('loan-admin-table');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${name}</td>
+                <td>100,000 ETB</td>
+                <td><span class="badge pending">Pending Loan Approval</span></td>
+                <td>
+                    <button class="btn btn-success btn-sm" onclick="activateLoan(this, '${name}')">Approve Loan</button>
+                    <button class="btn btn-danger btn-sm" onclick="removeRow(this)">Reject</button>
+                </td>
+            `;
+            loanBody.appendChild(row);
+            alert(`${name} ሰነዱ ጸድቆ ወደ ብድር ክፍል (Loan Dept) ተላልፏል!`);
+        }
+
+        // ACTIVATE LOAN
+        function activateLoan(btn, name) {
+            const tr = btn.closest('tr');
+            tr.querySelector('td:nth-child(3)').innerHTML = '<span class="badge active">Active</span>';
+            tr.querySelector('td:nth-child(4)').innerHTML = `
+                <button class="btn btn-warning btn-sm" onclick="sendDirectMsg('${name}')">Msg</button>
+                <button class="btn btn-danger btn-sm" onclick="blockUser(this)">Block</button>
+            `;
+            alert(`ለ ${name} ብድሩ ተፈቅዶ አክቲቭ ሆኗል! "የራሴ ደብተር" ላይ አውቶማቲክ ሂሳቡ ይከፈታል።`);
         }
 
         // APPOINT ADMIN LOGIC
-        function appointAdmin(e) {
+        function handleAppointAdmin(e) {
             e.preventDefault();
-            const name = document.getElementById('adm_name').value;
-            const user = document.getElementById('adm_user').value;
-            const ip = document.getElementById('adm_ip').value;
-            const dept = document.getElementById('adm_dept').value;
+            const name = document.getElementById('app_name').value;
+            const id = document.getElementById('app_id').value;
+            const ip = document.getElementById('app_ip').value;
+            const dept = document.getElementById('app_dept').value;
 
-            const adminBody = document.getElementById('admin-table-body');
-            const newRow = `
-                <tr>
-                    <td>${name}<br><small>${user}</small></td>
-                    <td>${dept}</td>
-                    <td>${ip}</td>
-                    <td><span class="badge active">Active</span></td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn btn-warning btn-sm" onclick="sendMsg('${name}')">Msg</button>
-                            <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Block</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>
-                        </div>
-                    </td>
-                </tr>
+            const adminTable = document.getElementById('admin-list-table');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${name}<br><small>${id}</small></td>
+                <td>${dept}</td>
+                <td>${ip}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="sendDirectMsg('${name}')">Msg</button>
+                    <button class="btn btn-danger btn-sm" onclick="removeRow(this)">Delete</button>
+                </td>
             `;
-            adminBody.innerHTML += newRow;
-            alert(`አድሚን ${name} ለ${dept} በተሳካ ሁኔታ ተሾሟል!`);
+            adminTable.appendChild(row);
+            alert(`አድሚን ${name} ለ ${dept} ተሾሟል!`);
+            e.target.reset();
         }
 
-        // APPROVE DOCUMENT & PASS TO LOAN DEPT
-        function approveDoc(btn) {
-            const row = btn.closest('tr');
-            row.querySelector('.badge').className = 'badge active';
-            row.querySelector('.badge').innerText = 'Verified';
-            alert('ሰነዱ ጸድቋል! አባሉ ወደ ብድር ክፍል (Loan Dept) ተላልፏል።');
+        // UTILITIES
+        function sendDirectMsg(name) {
+            const msg = prompt(`ለ ${name} የሚላክ መልእክት/ትእዛዝ፡`);
+            if(msg) alert(`መልእክት ለ ${name} ተልኳል፡ "${msg}"`);
         }
 
-        // APPROVE LOAN
-        function approveLoan(btn) {
-            const row = btn.closest('tr');
-            row.querySelector('.badge').className = 'badge active';
-            row.querySelector('.badge').innerText = 'Active';
-            alert('ብድሩ በአድሚኑ ጸድቋል! ተበዳሪው አክቲቭ ሆኗል።');
+        function blockUser(btn) {
+            const td = btn.closest('tr').querySelector('td:nth-child(3)');
+            td.innerHTML = '<span class="badge blocked">Blocked</span>';
         }
 
-        // ACTION HELPERS
-        function blockRow(btn) {
-            const badge = btn.closest('tr').querySelector('.badge');
-            badge.className = 'badge blocked';
-            badge.innerText = 'Blocked';
-        }
-
-        function deleteRow(btn) {
-            if(confirm('እርግጠኛ ነዎት ይህን መረጃ መሰረዝ ይፈልጋሉ?')) {
+        function removeRow(btn) {
+            if(confirm('ይህን መረጃ እርግጠኛ ሆነው መሰረዝ ይፈልጋሉ?')) {
                 btn.closest('tr').remove();
             }
         }
 
-        function sendMsg(name) {
-            const msg = prompt(`ለ ${name} የሚላክ መልእክት/ትእዛዝ ያስገቡ፡`);
-            if(msg) alert(`መልእክት ለ ${name} ተልኳል፡ "${msg}"`);
-        }
-
-        // PHOTO ZOOM MODAL LOGIC
-        let currentScale = 1;
-        function viewPhoto(url) {
-            const modal = document.getElementById('imgModal');
-            const img = document.getElementById('modalImg');
-            img.src = url;
-            currentScale = 1;
-            img.style.transform = `scale(${currentScale})`;
-            modal.style.display = 'flex';
-        }
-
-        function zoomImage(factor) {
-            currentScale *= factor;
-            document.getElementById('modalImg').style.transform = `scale(${currentScale})`;
+        function openPhoto(url) {
+            document.getElementById('modalImg').src = url;
+            document.getElementById('imgModal').style.display = 'flex';
         }
 
         function closeModal() {
