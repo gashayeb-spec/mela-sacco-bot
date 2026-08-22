@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mela Sacco Digital System</title>
-    <!-- Telegram WebApp SDK for Fullscreen -->
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -16,6 +16,7 @@
             --border: #1e293b;
             --green: #10b981;
             --red: #ef4444;
+            --warning: #f59e0b;
         }
 
         .light-mode {
@@ -26,206 +27,99 @@
             --border: #e2e8f0;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
 
         body {
             background-color: var(--bg);
             color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            width: 100vw;
-            overflow-x: hidden;
+            display: flex; flex-direction: column;
+            min-height: 100vh; width: 100vw; overflow-x: hidden;
         }
 
-        /* HEADER & MENU SELECTOR FOR MOBILE */
         header {
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border);
-            padding: 12px 15px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            padding: 12px 15px; position: sticky; top: 0; z-index: 100;
         }
 
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .logo { font-size: 18px; font-weight: 800; color: var(--accent); }
 
-        .logo {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--accent);
-        }
-
-        /* DROPDOWN MENU FOR TELEGRAM MOBILE */
         .menu-selector {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg);
-            color: var(--text-main);
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 700;
-            outline: none;
+            width: 100%; padding: 12px; background: var(--bg);
+            color: var(--text-main); border: 1px solid var(--accent);
+            border-radius: 8px; font-size: 14px; font-weight: 700; outline: none;
         }
 
-        /* MAIN FULLSCREEN CONTAINER */
-        .main-container {
-            flex: 1;
-            padding: 15px;
-            width: 100%;
+        .main-container { flex: 1; padding: 15px; width: 100%; }
+        .panel { display: none; width: 100%; }
+        .panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border); padding: 15px; border-radius: 10px; }
+        .card h5 { color: var(--text-sub); font-size: 11px; text-transform: uppercase; margin-bottom: 5px; }
+        .card .num { font-size: 20px; font-weight: 700; }
+
+        .form-box, .table-box {
+            background-color: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 10px; padding: 15px; margin-bottom: 15px; width: 100%; overflow-x: auto;
         }
 
-        /* DYNAMIC FULLSCREEN PANELS */
-        .panel {
-            display: none;
-            width: 100%;
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+        .form-group label { font-size: 12px; color: var(--text-sub); font-weight: 600; }
+        .form-group input, .form-group select {
+            padding: 10px; border-radius: 6px; border: 1px solid var(--border);
+            background: var(--bg); color: var(--text-main); font-size: 13px; outline: none;
         }
 
-        .panel.active {
-            display: block;
-            animation: fadeIn 0.2s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* CARDS & GRIDS */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 15px;
-            border-radius: 10px;
-        }
-
-        .card h5 {
-            color: var(--text-sub);
-            font-size: 11px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        .card .num {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        /* COMMAND BOX FOR ADMINS */
-        .command-box {
-            background: rgba(37, 99, 235, 0.1);
-            border: 1px solid var(--accent);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        .command-box h4 {
-            color: var(--accent);
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .command-input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .command-input-group input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text-main);
-            font-size: 13px;
-        }
-
-        /* TABLES */
-        .table-box {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 15px;
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 13px;
-        }
-
-        th, td {
-            padding: 10px 8px;
-            border-bottom: 1px solid var(--border);
-        }
-
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+        th, td { padding: 10px 6px; border-bottom: 1px solid var(--border); }
         th { color: var(--text-sub); }
 
+        .badge { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; display: inline-block; }
+        .badge.active { background: rgba(16, 185, 129, 0.2); color: var(--green); }
+        .badge.pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .badge.blocked { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+
+        .btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
         .btn {
-            padding: 10px 14px;
-            border-radius: 6px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            background: var(--accent);
-            color: #fff;
-            font-size: 13px;
-            width: 100%;
+            padding: 8px 12px; border-radius: 6px; border: none; font-weight: 600;
+            cursor: pointer; background: var(--accent); color: #fff; font-size: 12px;
         }
-
-        .btn-danger { background: var(--red); }
         .btn-success { background: var(--green); }
+        .btn-warning { background: var(--warning); }
+        .btn-danger { background: var(--red); }
+        .btn-sm { padding: 5px 8px; font-size: 11px; }
 
-        .btn-sm {
-            padding: 6px 10px;
-            font-size: 11px;
-            width: auto;
+        /* IMAGE MODAL ZOOM VIEWER */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.9);
+            justify-content: center; align-items: center; flex-direction: column;
         }
+        .modal img { max-width: 90%; max-height: 70%; transition: transform 0.25s ease; border-radius: 8px; }
+        .modal-controls { margin-top: 15px; display: flex; gap: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- HEADER / NAVIGATION -->
     <header>
         <div class="header-top">
             <div class="logo">⚡ MELA SACCO</div>
             <button onclick="toggleTheme()" style="background:var(--border); color:var(--text-main); border:none; padding:5px 10px; border-radius:6px; font-size:12px;">🌓 Theme</button>
         </div>
 
-        <!-- MOBILE SELECTOR MENU (FULL SCREEN SWITCHER) -->
         <select class="menu-selector" onchange="switchPanel(this.value)">
             <optgroup label="የህዝብ ገፆች">
                 <option value="info">ℹ️ ስለ መላ ሳኮ (Info)</option>
-                <option value="register">📝 የአባላት ምዝገባ (Register)</option>
+                <option value="register">📝 የአባላት ምዝገባ (Member Registration)</option>
             </optgroup>
-            <optgroup label="የ 6ቱ አድሚኖች ፓናል">
-                <option value="super_admin">👑 1. Super Admin Panel</option>
-                <option value="loan_dept">💰 2. Loan Dept Panel</option>
-                <option value="doc_dept">📑 3. Verification Panel</option>
+            <optgroup label="የ 6ቱ አድሚኖች መቆጣጠሪያ ፓናል">
+                <option value="super_admin">👑 1. Super Admin Panel (Master Control)</option>
+                <option value="doc_dept">📑 2. Verification Panel (Document Review)</option>
+                <option value="loan_dept">💰 3. Loan Dept Panel (Approvals & Risk)</option>
                 <option value="daily_dept">🏃 4. Daily Collection Panel</option>
                 <option value="monthly_dept">📅 5. Weekly/Monthly Panel</option>
                 <option value="finance_dept">🏦 6. Treasury & Finance Panel</option>
@@ -233,31 +127,64 @@
         </select>
     </header>
 
-    <!-- MAIN FULL SCREEN WORKSPACE -->
     <div class="main-container">
 
         <!-- 1. INFO PANEL -->
         <div id="info" class="panel active">
             <div class="table-box">
-                <h3 style="margin-bottom:10px;">🏛️ ስለ መላ ሳኮ</h3>
+                <h3 style="margin-bottom:10px;">🏛️ ስለ መላ ሳኮ አሰራር</h3>
                 <p style="line-height:1.6; color:var(--text-sub); font-size:13px;">
                     መላ ሳኮ አባላት በየቀኑ፣ በሳምንት ወይም በወር የሚቆጥቡበት እና በቁጠባ ደረጃቸው መሰረት በ90 ወይም 100 ቀን የሚመለስ የብድር አገልግሎት የሚያገኙበት ዲጂታል ሲስተም ነው።
                 </p>
             </div>
         </div>
 
-        <!-- 2. REGISTER PANEL -->
+        <!-- 2. MEMBER REGISTRATION FORM -->
         <div id="register" class="panel">
-            <div class="table-box">
-                <h3 style="margin-bottom: 15px;">📝 የአባላት ምዝገባ</h3>
-                <form onsubmit="event.preventDefault(); alert('የምዝገባ ጥያቄዎ ተልኳል!');">
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        <input type="text" placeholder="ሙሉ ስም" required style="padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
-                        <input type="tel" placeholder="ስልክ ቁጥር (+251...)" required style="padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
-                        <input type="text" placeholder="FAN ID (12 Digits)" maxlength="12" required style="padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
-                        <input type="text" placeholder="TIN Number (10 Digits)" maxlength="10" required style="padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
-                        <button class="btn" type="submit" style="margin-top:5px;">መዝግብ</button>
+            <div class="form-box">
+                <h3 style="margin-bottom: 15px;">📝 የአባላት ምዝገባ ቅጽ</h3>
+                <form id="memberForm" onsubmit="registerMember(event)">
+                    <div class="form-group">
+                        <label>ሙሉ ስም</label>
+                        <input type="text" id="reg_name" placeholder="አበበ በቀለ ቻላ" required>
                     </div>
+                    <div class="form-group">
+                        <label>ስልክ ቁጥር</label>
+                        <input type="tel" id="reg_phone" placeholder="+251911223344" required>
+                    </div>
+                    <div class="form-group">
+                        <label>አድራሻ (ከተማ መምረጫ)</label>
+                        <select id="reg_city" required>
+                            <option value="">ከተማ ይምረጡ...</option>
+                            <option value="ሐዋሳ">ሐዋሳ</option>
+                            <option value="አዲስ አበባ">አዲስ አበባ</option>
+                            <option value="ድሬዳዋ">ድሬዳዋ</option>
+                            <option value="ባህር ዳር">ባህር ዳር</option>
+                            <option value="መቀሌ">መቀሌ</option>
+                            <option value="አዳማ">አዳማ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>ብሔራዊ መታወቂያ (FAN ID - 12 Digits)</label>
+                        <input type="text" id="reg_fan" maxlength="12" placeholder="123456789012" required>
+                    </div>
+                    <div class="form-group">
+                        <label>TIN Number (10 Digits)</label>
+                        <input type="text" id="reg_tin" maxlength="10" placeholder="1098765432" required>
+                    </div>
+                    <div class="form-group">
+                        <label>VAT ተመዝጋቢነት</label>
+                        <select id="reg_vat"><option value="የለኝም">የለኝም</option><option value="አለኝ">አለኝ</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>የመታወቂያ ፎቶ (ID Card Photo Upload)</label>
+                        <input type="file" id="reg_id_pic" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label>የንግድ ፈቃድ / ሰነድ ፎቶ (Trade License Photo)</label>
+                        <input type="file" id="reg_license_pic" accept="image/*" required>
+                    </div>
+                    <button class="btn" type="submit" style="width:100%; margin-top:10px;">መዝግብ እና ሰነዶችን ላክ</button>
                 </form>
             </div>
         </div>
@@ -265,77 +192,59 @@
         <!-- 3. SUPER ADMIN PANEL -->
         <div id="super_admin" class="panel">
             <div class="grid-2">
-                <div class="card"><h5>ጠቅላላ አድሚን</h5><div class="num">5</div></div>
-                <div class="card"><h5>ተመዝጋቢዎች</h5><div class="num">1,240</div></div>
+                <div class="card"><h5>ጠቅላላ አድሚኖች</h5><div class="num" id="stat-admins">5</div></div>
+                <div class="card"><h5>ተመዝጋቢዎች</h5><div class="num" id="stat-members">1,240</div></div>
             </div>
 
-            <!-- COMMAND DIRECTIVE BOX -->
-            <div class="command-box">
-                <h4>📣 የሱፐር አድሚን ትእዛዝ (Broadcast)</h4>
-                <div class="command-input-group">
-                    <input type="text" id="super-cmd" placeholder="ለ 5ቱ አድሚኖች የሚላክ ትእዛዝ...">
-                    <button class="btn" onclick="sendDirective()">ትእዛዝ አስተላልፍ</button>
-                </div>
+            <!-- APPOINT NEW ADMIN SECTION -->
+            <div class="form-box">
+                <h4>👑 አዲስ አድሚን ማሾሚያ (Appoint Admin)</h4>
+                <form onsubmit="appointAdmin(event)" style="margin-top:10px;">
+                    <div class="form-group">
+                        <label>የሰራተኛው/አድሚኑ ስም</label>
+                        <input type="text" id="adm_name" placeholder="እስክንድር ተስፋዬ" required>
+                    </div>
+                    <div class="form-group">
+                        <label>User ID / Username</label>
+                        <input type="text" id="adm_user" placeholder="ADM-LOAN-05" required>
+                    </div>
+                    <div class="form-group">
+                        <label>የአይፒ አድሬስ (IP Address)</label>
+                        <input type="text" id="adm_ip" placeholder="192.168.1.45" required>
+                    </div>
+                    <div class="form-group">
+                        <label>የሚሾምበት ዲፓርትመንት</label>
+                        <select id="adm_dept" required>
+                            <option value="Loan Department">Loan Department</option>
+                            <option value="Document Verification">Document Verification</option>
+                            <option value="Daily Collection">Daily Collection</option>
+                            <option value="Weekly/Monthly">Weekly/Monthly</option>
+                            <option value="Finance & Treasury">Finance & Treasury</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" type="submit" style="width:100%;">አድሚኑን ሾም (Appoint)</button>
+                </form>
             </div>
 
+            <!-- ADMIN LIST TABLE -->
             <div class="table-box">
-                <h4 style="margin-bottom:10px;">👑 የአድሚኖች መቆጣጠሪያ</h4>
-                <table>
+                <h4>👑 የተሾሙ አድሚኖች ዝርዝር እና መቆጣጠሪያ</h4>
+                <table style="margin-top:10px;">
                     <thead>
-                        <tr><th>አድሚን</th><th>ሁኔታ</th><th>ተግባር</th></tr>
+                        <tr><th>ስም / ID</th><th>ዲፓርትመንት</th><th>IP Address</th><th>ሁኔታ</th><th>ተግባር</th></tr>
                     </thead>
-                    <tbody>
-                        <tr><td>Loan Dept</td><td style="color:var(--green)">Active</td><td><button class="btn btn-danger btn-sm">Block</button></td></tr>
-                        <tr><td>Verification</td><td style="color:var(--green)">Active</td><td><button class="btn btn-danger btn-sm">Block</button></td></tr>
-                        <tr><td>Daily Coll.</td><td style="color:var(--green)">Active</td><td><button class="btn btn-danger btn-sm">Block</button></td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 4. LOAN DEPT PANEL -->
-        <div id="loan_dept" class="panel">
-            <div class="grid-2">
-                <div class="card"><h5>የተሰጠ ብድር</h5><div class="num">4.2M</div></div>
-                <div class="card"><h5>ያልተመለሰ</h5><div class="num" style="color:var(--red)">850K</div></div>
-            </div>
-
-            <div class="command-box">
-                <h4>💬 ለተበዳሪዎች ማስጠንቀቂያ ላክ</h4>
-                <div class="command-input-group">
-                    <input type="text" placeholder="የ90 ቀን ገደባችሁ ላለፈባችሁ...">
-                    <button class="btn btn-danger">ማስጠንቀቂያ ላክ</button>
-                </div>
-            </div>
-
-            <div class="table-box">
-                <h4 style="margin-bottom:10px;">💰 የብድር መከታተያ</h4>
-                <table>
-                    <thead>
-                        <tr><th>ተበዳሪ</th><th>መጠን</th><th>ቀን</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>ዮሐንስ ገብሬ</td><td>50k</td><td>30 ቀን ቀረው</td></tr>
-                        <tr><td>መሐመድ አሊ</td><td>100k</td><td style="color:var(--red)">-5 ቀን አልፏል</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 5. VERIFICATION PANEL -->
-        <div id="doc_dept" class="panel">
-            <div class="table-box">
-                <h3 style="margin-bottom:10px;">📑 የሰነዶች ማረጋገጫ</h3>
-                <table>
-                    <thead>
-                        <tr><th>ስም</th><th>FAN / TIN</th><th>ተግባር</th></tr>
-                    </thead>
-                    <tbody>
+                    <tbody id="admin-table-body">
                         <tr>
-                            <td>ኬብሮን</td>
-                            <td>1234... / 1098...</td>
+                            <td>ዮሐንስ<br><small>ADM-LOAN-01</small></td>
+                            <td>Loan Dept</td>
+                            <td>192.168.1.10</td>
+                            <td><span class="badge active">Active</span></td>
                             <td>
-                                <button class="btn btn-success btn-sm">Approve</button>
+                                <div class="btn-group">
+                                    <button class="btn btn-warning btn-sm" onclick="sendMsg('ዮሐንስ')">Msg</button>
+                                    <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Block</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -343,56 +252,227 @@
             </div>
         </div>
 
-        <!-- 6. DAILY COLLECTION -->
+        <!-- 4. VERIFICATION PANEL (WITH PHOTO ZOOM VIEWER) -->
+        <div id="doc_dept" class="panel">
+            <div class="table-box">
+                <h3>📑 የተመዝጋቢዎች ሰነድ ማረጋገጫ (Verification)</h3>
+                <p style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">እዚህ የተላኩትን መታወቂያዎች እና ንግድ ፈቃዶች ዙም አድርገህ በማየት ማረጋገጥ ትችላለህ።</p>
+                <table>
+                    <thead>
+                        <tr><th>አመልካች / ከተማ</th><th>FAN / TIN</th><th>የተላኩ ሰነዶች (Photos)</th><th>ሁኔታ</th><th>ተግባር</th></tr>
+                    </thead>
+                    <tbody id="doc-table-body">
+                        <tr>
+                            <td>ኬብሮን ተስፋዬ<br><small>ሐዋሳ</small></td>
+                            <td>123456789012<br><small>TIN: 1098765432</small></td>
+                            <td>
+                                <button class="btn btn-sm" onclick="viewPhoto('https://via.placeholder.com/600x400?text=National+ID+Photo')">መታወቂያ 🔍</button>
+                                <button class="btn btn-sm" onclick="viewPhoto('https://via.placeholder.com/600x400?text=Trade+License+Photo')">ንግድ ፈቃድ 🔍</button>
+                            </td>
+                            <td><span class="badge pending">Pending</span></td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-success btn-sm" onclick="approveDoc(this)">Approve & Pass</button>
+                                    <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Reject</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 5. LOAN DEPT PANEL -->
+        <div id="loan_dept" class="panel">
+            <div class="grid-2">
+                <div class="card"><h5>የተሰጠ ብድር</h5><div class="num">4.2M</div></div>
+                <div class="card"><h5>ያልተመለሰ</h5><div class="num" style="color:var(--red)">850K</div></div>
+            </div>
+
+            <div class="table-box">
+                <h3>💰 የብድር ማጽደቂያ እና መከታተያ ፓናል</h3>
+                <table style="margin-top:10px;">
+                    <thead>
+                        <tr><th>ተበዳሪ</th><th>የተጠየቀ ብድር</th><th>ሁኔታ</th><th>ተግባር</th></tr>
+                    </thead>
+                    <tbody id="loan-table-body">
+                        <tr>
+                            <td>ዮሐንስ ገብሬ<br><small>ሐዋሳ</small></td>
+                            <td>50,000 ETB</td>
+                            <td><span class="badge active">Active</span></td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-warning btn-sm" onclick="sendMsg('ዮሐንስ ገብሬ')">Msg</button>
+                                    <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Block</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>ኬብሮን ተስፋዬ<br><small>ሐዋሳ</small></td>
+                            <td>100,000 ETB</td>
+                            <td><span class="badge pending">Pending Approval</span></td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-success btn-sm" onclick="approveLoan(this)">Approve (Active)</button>
+                                    <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Reject</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- OTHER PANELS -->
         <div id="daily_dept" class="panel">
-            <div class="table-box">
-                <h3>🏃 Daily Collection Panel</h3>
-                <p style="color:var(--text-sub); margin-top:10px;">የዕለታዊ የመስክ ሰብሳቢዎች መቆጣጠሪያ ሙሉ ስክሪን ገጽ።</p>
-            </div>
+            <div class="table-box"><h3>🏃 Daily Collection Panel</h3><p style="color:var(--text-sub);">የዕለታዊ ሰብሳቢዎች ገጽ።</p></div>
         </div>
-
-        <!-- 7. WEEKLY/MONTHLY -->
         <div id="monthly_dept" class="panel">
-            <div class="table-box">
-                <h3>📅 Weekly & Monthly Savings</h3>
-                <p style="color:var(--text-sub); margin-top:10px;">የሳምንታዊ እና የወርሃዊ ቁጠባዎች መቆጣጠሪያ ገጽ።</p>
-            </div>
+            <div class="table-box"><h3>📅 Weekly & Monthly Savings</h3><p style="color:var(--text-sub);">የቁጠባዎች ገጽ።</p></div>
         </div>
-
-        <!-- 8. TREASURY -->
         <div id="finance_dept" class="panel">
-            <div class="table-box">
-                <h3>🏦 Treasury & Finance Panel</h3>
-                <p style="color:var(--text-sub); margin-top:10px;">የካዝና ሀብትና የፋይናንስ እንቅስቃሴዎች መቆጣጠሪያ።</p>
-            </div>
+            <div class="table-box"><h3>🏦 Treasury & Finance Panel</h3><p style="color:var(--text-sub);">የካዝና ገጽ።</p></div>
         </div>
 
     </div>
 
+    <!-- IMAGE ZOOM MODAL -->
+    <div id="imgModal" class="modal">
+        <img id="modalImg" src="" alt="Document Preview">
+        <div class="modal-controls">
+            <button class="btn" onclick="zoomImage(1.2)">Zoom In ➕</button>
+            <button class="btn" onclick="zoomImage(0.8)">Zoom Out ➖</button>
+            <button class="btn btn-danger" onclick="closeModal()">ዝጋ (Close)</button>
+        </div>
+    </div>
+
     <script>
-        // TELEGRAM FULL SCREEN INITIALIZATION
+        // TELEGRAM SDK INIT
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand(); // ቴሌግራምን ሙሉ ስክሪን ያደርገዋል
+            window.Telegram.WebApp.expand();
         }
 
         function switchPanel(panelId) {
-            // Hide all panels
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            // Show selected panel
             document.getElementById(panelId).classList.add('active');
         }
 
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
+        function toggleTheme() { document.body.classList.toggle('light-mode'); }
+
+        // MEMBER REGISTRATION LOGIC
+        function registerMember(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg_name').value;
+            const city = document.getElementById('reg_city').value;
+            const fan = document.getElementById('reg_fan').value;
+            const tin = document.getElementById('reg_tin').value;
+
+            // Add to Verification Table Dynamically
+            const docBody = document.getElementById('doc-table-body');
+            const newRow = `
+                <tr>
+                    <td>${name}<br><small>${city}</small></td>
+                    <td>${fan}<br><small>TIN: ${tin}</small></td>
+                    <td>
+                        <button class="btn btn-sm" onclick="viewPhoto('https://via.placeholder.com/600x400?text=${encodeURIComponent(name)}+ID')">መታወቂያ 🔍</button>
+                        <button class="btn btn-sm" onclick="viewPhoto('https://via.placeholder.com/600x400?text=${encodeURIComponent(name)}+License')">ንግድ ፈቃድ 🔍</button>
+                    </td>
+                    <td><span class="badge pending">Pending</span></td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-success btn-sm" onclick="approveDoc(this)">Approve & Pass</button>
+                            <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Reject</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            docBody.innerHTML += newRow;
+            alert('ምዝገባዎ ተጠናቋል! መረጃዎ እና ሰነዶችዎ ለVerification Panel ተልከዋል።');
+            document.getElementById('memberForm').reset();
         }
 
-        function sendDirective() {
-            const msg = document.getElementById('super-cmd').value;
-            if(msg) {
-                alert('ትእዛዝዎ ለሁሉም አድሚኖች ተ አስተላልፏል፡ "' + msg + '"');
-                document.getElementById('super-cmd').value = '';
+        // APPOINT ADMIN LOGIC
+        function appointAdmin(e) {
+            e.preventDefault();
+            const name = document.getElementById('adm_name').value;
+            const user = document.getElementById('adm_user').value;
+            const ip = document.getElementById('adm_ip').value;
+            const dept = document.getElementById('adm_dept').value;
+
+            const adminBody = document.getElementById('admin-table-body');
+            const newRow = `
+                <tr>
+                    <td>${name}<br><small>${user}</small></td>
+                    <td>${dept}</td>
+                    <td>${ip}</td>
+                    <td><span class="badge active">Active</span></td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-warning btn-sm" onclick="sendMsg('${name}')">Msg</button>
+                            <button class="btn btn-danger btn-sm" onclick="blockRow(this)">Block</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            adminBody.innerHTML += newRow;
+            alert(`አድሚን ${name} ለ${dept} በተሳካ ሁኔታ ተሾሟል!`);
+        }
+
+        // APPROVE DOCUMENT & PASS TO LOAN DEPT
+        function approveDoc(btn) {
+            const row = btn.closest('tr');
+            row.querySelector('.badge').className = 'badge active';
+            row.querySelector('.badge').innerText = 'Verified';
+            alert('ሰነዱ ጸድቋል! አባሉ ወደ ብድር ክፍል (Loan Dept) ተላልፏል።');
+        }
+
+        // APPROVE LOAN
+        function approveLoan(btn) {
+            const row = btn.closest('tr');
+            row.querySelector('.badge').className = 'badge active';
+            row.querySelector('.badge').innerText = 'Active';
+            alert('ብድሩ በአድሚኑ ጸድቋል! ተበዳሪው አክቲቭ ሆኗል።');
+        }
+
+        // ACTION HELPERS
+        function blockRow(btn) {
+            const badge = btn.closest('tr').querySelector('.badge');
+            badge.className = 'badge blocked';
+            badge.innerText = 'Blocked';
+        }
+
+        function deleteRow(btn) {
+            if(confirm('እርግጠኛ ነዎት ይህን መረጃ መሰረዝ ይፈልጋሉ?')) {
+                btn.closest('tr').remove();
             }
+        }
+
+        function sendMsg(name) {
+            const msg = prompt(`ለ ${name} የሚላክ መልእክት/ትእዛዝ ያስገቡ፡`);
+            if(msg) alert(`መልእክት ለ ${name} ተልኳል፡ "${msg}"`);
+        }
+
+        // PHOTO ZOOM MODAL LOGIC
+        let currentScale = 1;
+        function viewPhoto(url) {
+            const modal = document.getElementById('imgModal');
+            const img = document.getElementById('modalImg');
+            img.src = url;
+            currentScale = 1;
+            img.style.transform = `scale(${currentScale})`;
+            modal.style.display = 'flex';
+        }
+
+        function zoomImage(factor) {
+            currentScale *= factor;
+            document.getElementById('modalImg').style.transform = `scale(${currentScale})`;
+        }
+
+        function closeModal() {
+            document.getElementById('imgModal').style.display = 'none';
         }
     </script>
 </body>
