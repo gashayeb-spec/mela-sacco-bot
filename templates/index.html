@@ -2,8 +2,10 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mela Sacco System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mela Sacco Digital System</title>
+    <!-- Telegram WebApp SDK for Fullscreen -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --bg: #0b0f19;
@@ -28,99 +30,63 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         body {
             background-color: var(--bg);
             color: var(--text-main);
             display: flex;
-            height: 100vh;
+            flex-direction: column;
+            min-height: 100vh;
             width: 100vw;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
-        /* SIDEBAR */
-        .sidebar {
-            width: 280px;
-            background-color: var(--card-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            flex-shrink: 0;
-        }
-
-        .logo {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--accent);
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .menu-cat {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--text-sub);
-            margin: 15px 0 8px 5px;
-            font-weight: 700;
-        }
-
-        .nav-btn {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: none;
-            background: transparent;
-            color: var(--text-sub);
-            text-align: left;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: 0.2s;
-        }
-
-        .nav-btn:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text-main);
-        }
-
-        .nav-btn.active {
-            background-color: var(--accent);
-            color: #fff;
-        }
-
-        /* MAIN CONTENT AREA - FULL SCREEN EXPANSION */
-        .workspace {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
+        /* HEADER & MENU SELECTOR FOR MOBILE */
         header {
-            padding: 15px 30px;
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border);
+            padding: 12px 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 10px;
         }
 
-        .panel-container {
-            padding: 30px;
+        .logo {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        /* DROPDOWN MENU FOR TELEGRAM MOBILE */
+        .menu-selector {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            color: var(--text-main);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            outline: none;
+        }
+
+        /* MAIN FULLSCREEN CONTAINER */
+        .main-container {
             flex: 1;
+            padding: 15px;
+            width: 100%;
         }
 
-        /* DYNAMIC PANEL VIEWS */
+        /* DYNAMIC FULLSCREEN PANELS */
         .panel {
             display: none;
             width: 100%;
@@ -128,80 +94,79 @@
 
         .panel.active {
             display: block;
-            animation: slideUp 0.3s ease-out;
+            animation: fadeIn 0.2s ease-in-out;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(15px); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* STATS & GRID */
-        .grid-4 {
+        /* CARDS & GRIDS */
+        .grid-2 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border);
-            padding: 20px;
-            border-radius: 12px;
+            padding: 15px;
+            border-radius: 10px;
         }
 
         .card h5 {
             color: var(--text-sub);
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
 
         .card .num {
-            font-size: 26px;
+            font-size: 20px;
             font-weight: 700;
         }
 
-        /* COMMAND & DIRECTIVE BOX */
+        /* COMMAND BOX FOR ADMINS */
         .command-box {
             background: rgba(37, 99, 235, 0.1);
             border: 1px solid var(--accent);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
         }
 
         .command-box h4 {
             color: var(--accent);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 14px;
+            margin-bottom: 8px;
         }
 
         .command-input-group {
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
         }
 
         .command-input-group input {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
             border: 1px solid var(--border);
             background: var(--bg);
             color: var(--text-main);
-            outline: none;
+            font-size: 13px;
         }
 
         /* TABLES */
         .table-box {
             background-color: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 10px;
+            padding: 15px;
             width: 100%;
             overflow-x: auto;
         }
@@ -210,237 +175,222 @@
             width: 100%;
             border-collapse: collapse;
             text-align: left;
+            font-size: 13px;
         }
 
         th, td {
-            padding: 14px;
+            padding: 10px 8px;
             border-bottom: 1px solid var(--border);
-            font-size: 14px;
         }
 
         th { color: var(--text-sub); }
 
         .btn {
-            padding: 8px 16px;
+            padding: 10px 14px;
             border-radius: 6px;
             border: none;
             font-weight: 600;
             cursor: pointer;
             background: var(--accent);
             color: #fff;
+            font-size: 13px;
+            width: 100%;
         }
 
         .btn-danger { background: var(--red); }
         .btn-success { background: var(--green); }
 
-        /* Theme Color Picker */
-        .color-picker {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: auto;
-            padding-top: 15px;
-            border-top: 1px solid var(--border);
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 11px;
+            width: auto;
         }
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <div class="logo">⚡ MELA SACCO</div>
-
-        <div class="menu-cat">የህዝብ ገፆች</div>
-        <button class="nav-btn active" onclick="openPanel('info', this)">ℹ️ ስለ መላ ሳኮ</button>
-        <button class="nav-btn" onclick="openPanel('register', this)">📝 የአባላት ምዝገባ</button>
-
-        <div class="menu-cat">የአድሚን ፓናሎች (Full Panel)</div>
-        <button class="nav-btn" onclick="openPanel('super_admin', this)">👑 1. Super Admin</button>
-        <button class="nav-btn" onclick="openPanel('loan_dept', this)">💰 2. Loan Dept</button>
-        <button class="nav-btn" onclick="openPanel('doc_dept', this)">📑 3. Verification</button>
-        <button class="nav-btn" onclick="openPanel('daily_dept', this)">🏃 4. Daily Collection</button>
-        <button class="nav-btn" onclick="openPanel('monthly_dept', this)">📅 5. Weekly/Monthly</button>
-        <button class="nav-btn" onclick="openPanel('finance_dept', this)">🏦 6. Treasury</button>
-
-        <div class="color-picker">
-            <span style="font-size: 12px; color: var(--text-sub)">Theme Color:</span>
-            <input type="color" value="#2563eb" onchange="changeColor(this.value)">
+    <!-- HEADER / NAVIGATION -->
+    <header>
+        <div class="header-top">
+            <div class="logo">⚡ MELA SACCO</div>
+            <button onclick="toggleTheme()" style="background:var(--border); color:var(--text-main); border:none; padding:5px 10px; border-radius:6px; font-size:12px;">🌓 Theme</button>
         </div>
-    </div>
 
-    <!-- MAIN WORKSPACE -->
-    <div class="workspace">
-        <header>
-            <h2 id="header-title">ስለ መላ ሳኮ (Information)</h2>
-            <div>
-                <button class="btn" onclick="toggleTheme()" style="background: var(--border); color: var(--text-main)">🌓 Light/Dark Mode</button>
+        <!-- MOBILE SELECTOR MENU (FULL SCREEN SWITCHER) -->
+        <select class="menu-selector" onchange="switchPanel(this.value)">
+            <optgroup label="የህዝብ ገፆች">
+                <option value="info">ℹ️ ስለ መላ ሳኮ (Info)</option>
+                <option value="register">📝 የአባላት ምዝገባ (Register)</option>
+            </optgroup>
+            <optgroup label="የ 6ቱ አድሚኖች ፓናል">
+                <option value="super_admin">👑 1. Super Admin Panel</option>
+                <option value="loan_dept">💰 2. Loan Dept Panel</option>
+                <option value="doc_dept">📑 3. Verification Panel</option>
+                <option value="daily_dept">🏃 4. Daily Collection Panel</option>
+                <option value="monthly_dept">📅 5. Weekly/Monthly Panel</option>
+                <option value="finance_dept">🏦 6. Treasury & Finance Panel</option>
+            </optgroup>
+        </select>
+    </header>
+
+    <!-- MAIN FULL SCREEN WORKSPACE -->
+    <div class="main-container">
+
+        <!-- 1. INFO PANEL -->
+        <div id="info" class="panel active">
+            <div class="table-box">
+                <h3 style="margin-bottom:10px;">🏛️ ስለ መላ ሳኮ</h3>
+                <p style="line-height:1.6; color:var(--text-sub); font-size:13px;">
+                    መላ ሳኮ አባላት በየቀኑ፣ በሳምንት ወይም በወር የሚቆጥቡበት እና በቁጠባ ደረጃቸው መሰረት በ90 ወይም 100 ቀን የሚመለስ የብድር አገልግሎት የሚያገኙበት ዲጂታል ሲስተም ነው።
+                </p>
             </div>
-        </header>
-
-        <div class="panel-container">
-
-            <!-- 1. INFO PAGE -->
-            <div id="info" class="panel active">
-                <div class="table-box">
-                    <h3 style="margin-bottom: 15px;">🏛️ ስለ መላ ሳኮ አላማ እና የአሰራር ህጎች</h3>
-                    <p style="line-height: 1.8; color: var(--text-sub);">
-                        መላ ሳኮ አባላት በየቀኑ፣ በሳምንት ወይም በወር የሚቆጥቡበት እና በቁጠባ ደረጃቸው መሰረት በ90 ወይም 100 ቀን የሚመለስ የብድር አገልግሎት የሚያገኙበት ዲጂታል ሲስተም ነው።
-                    </p>
-                </div>
-            </div>
-
-            <!-- 2. REGISTER PAGE -->
-            <div id="register" class="panel">
-                <div class="table-box">
-                    <h3 style="margin-bottom: 20px;">📝 የአባላት ምዝገባ ቅጽ</h3>
-                    <form onsubmit="event.preventDefault(); alert('የምዝገባ ጥያቄዎ ለDocument Verification Panel ተልኳል!');">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                            <input type="text" placeholder="ሙሉ ስም" required style="padding:12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
-                            <input type="tel" placeholder="ስልክ ቁጥር (+251...)" required style="padding:12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
-                            <input type="text" placeholder="FAN ID (12 Digits)" maxlength="12" required style="padding:12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
-                            <input type="text" placeholder="TIN Number (10 Digits)" maxlength="10" required style="padding:12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
-                        </div>
-                        <button class="btn" type="submit" style="margin-top: 20px; width: 100%; padding: 14px;">አባልነትን መዝግብ</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- 3. SUPER ADMIN PANEL -->
-            <div id="super_admin" class="panel">
-                <div class="grid-4">
-                    <div class="card"><h5>ጠቅላላ አድሚኖች</h5><div class="num">5</div></div>
-                    <div class="card"><h5>ንቁ ተመዝጋቢዎች</h5><div class="num">1,240</div></div>
-                    <div class="card"><h5>የተጠየቁ OTPዎች</h5><div class="num">3 Pending</div></div>
-                    <div class="card"><h5>ሲስተም ሁኔታ</h5><div class="num" style="color:var(--green)">100% Active</div></div>
-                </div>
-
-                <!-- ADMIN COMMAND CENTER -->
-                <div class="command-box">
-                    <h4>📣 ለሁሉም 5ቱ አድሚኖች የሱፐር አድሚን ትእዛዝ (Broadcast Directives)</h4>
-                    <p style="font-size:13px; color:var(--text-sub)">እዚህ ጋር የሚጽፉት ትእዛዝ በሁሉም አድሚኖች ዳሽቦርድ ላይ ቀጥታ ይወጣል፡</p>
-                    <div class="command-input-group">
-                        <input type="text" id="super-cmd" placeholder="ለምሳሌ፡ የዛሬውን የብድር ስብስቦች እስከ 11፡00 ሰዓት አጠናቃችሁ ሪፖርት ላኩ...">
-                        <button class="btn" onclick="sendDirective()">ትእዛዝ አስተላልፍ</button>
-                    </div>
-                </div>
-
-                <div class="table-box">
-                    <h3>👑 የአድሚኖች ማኔጅመንት እና መቆጣጠሪያ</h3>
-                    <table style="margin-top: 15px;">
-                        <thead>
-                            <tr><th>ዲፓርትመንት</th><th>ኃላፊ ID</th><th>ሁኔታ</th><th>ተግባር</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>Loan Department</td><td>ADM-LOAN-01</td><td style="color:var(--green)">Active</td><td><button class="btn btn-danger">እግድ (Block)</button></td></tr>
-                            <tr><td>Document Verification</td><td>ADM-DOC-02</td><td style="color:var(--green)">Active</td><td><button class="btn btn-danger">እግድ (Block)</button></td></tr>
-                            <tr><td>Daily Collection</td><td>ADM-DAILY-03</td><td style="color:var(--green)">Active</td><td><button class="btn btn-danger">እግድ (Block)</button></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 4. LOAN DEPT PANEL -->
-            <div id="loan_dept" class="panel">
-                <div class="grid-4">
-                    <div class="card"><h5>የተሰጠ ብድር</h5><div class="num">4.2M ETB</div></div>
-                    <div class="card"><h5>ያልተመለሰ (Overdue)</h5><div class="num" style="color:var(--red)">850K ETB</div></div>
-                </div>
-
-                <div class="command-box">
-                    <h4>💬 ለተበዳሪዎች የሚላክ ማስጠንቀቂያ / ትእዛዝ</h4>
-                    <div class="command-input-group">
-                        <input type="text" placeholder="ለምሳሌ፡ የ90 ቀን የብድር ገደባችሁ ያለፈባችሁ አባላት በ3 ቀን ውስጥ እንድትከፍሉ...">
-                        <button class="btn btn-danger">ማስጠንቀቂያ ላክ</button>
-                    </div>
-                </div>
-
-                <div class="table-box">
-                    <h3>💰 የብድር እና ክፍያ መከታተያ ፓናል</h3>
-                    <table style="margin-top: 15px;">
-                        <thead>
-                            <tr><th>ተበዳሪ ስም</th><th>የተበደረው መጠን</th><th>የቀረው ቀን (ከ90/100)</th><th>ሁኔታ</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>ዮሐንስ ገብሬ</td><td>50,000 ETB</td><td>30 ቀን ይቀራል</td><td style="color:var(--green)">በስርዓቱ እየከፈለ ነው</td></tr>
-                            <tr><td>መሐመድ አሊ</td><td>100,000 ETB</td><td>ያለፈበት (-5 ቀን)</td><td style="color:var(--red)">ላግድ/ማስጠንቀቂያ ይላክ</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 5. VERIFICATION PANEL -->
-            <div id="doc_dept" class="panel">
-                <div class="table-box">
-                    <h3>📑 የሰነዶች እና አባላት ማረጋገጫ ፓናል</h3>
-                    <table style="margin-top: 15px;">
-                        <thead>
-                            <tr><th>አመልካች ስም</th><th>FAN ID</th><th>TIN</th><th>ያቀረበው ሰነድ</th><th>ተግባር</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>ኬብሮን ተስፋዬ</td><td>123456789012</td><td>1098765432</td><td>Trade_License.pdf</td><td>
-                                <button class="btn btn-success">አጽድቅ (Approve)</button>
-                                <button class="btn btn-danger">ውድቅ አድርግ</button>
-                            </td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- OTHER PANELS -->
-            <div id="daily_dept" class="panel">
-                <div class="table-box">
-                    <h3>🏃 Daily Collection Panel</h3>
-                    <p>የዕለታዊ የመስክ ሰብሳቢዎች መቆጣጠሪያ ሙሉ ስክሪን ገጽ።</p>
-                </div>
-            </div>
-
-            <div id="monthly_dept" class="panel">
-                <div class="table-box">
-                    <h3>📅 Weekly & Monthly Savings Panel</h3>
-                    <p>የሳምንታዊ እና የወርሃዊ ቁጠባዎች መቆጣጠሪያ ገጽ።</p>
-                </div>
-            </div>
-
-            <div id="finance_dept" class="panel">
-                <div class="table-box">
-                    <h3>🏦 Treasury & Finance Panel</h3>
-                    <p>የካዝና ሀብትና የፋይናንስ እንቅስቃሴዎች መቆጣጠሪያ።</p>
-                </div>
-            </div>
-
         </div>
+
+        <!-- 2. REGISTER PANEL -->
+        <div id="register" class="panel">
+            <div class="table-box">
+                <h3 style="margin-bottom: 15px;">📝 የአባላት ምዝገባ</h3>
+                <form onsubmit="event.preventDefault(); alert('የምዝገባ ጥያቄዎ ተልኳል!');">
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <input type="text" placeholder="ሙሉ ስም" required style="padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
+                        <input type="tel" placeholder="ስልክ ቁጥር (+251...)" required style="padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
+                        <input type="text" placeholder="FAN ID (12 Digits)" maxlength="12" required style="padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
+                        <input type="text" placeholder="TIN Number (10 Digits)" maxlength="10" required style="padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text-main);">
+                        <button class="btn" type="submit" style="margin-top:5px;">መዝግብ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. SUPER ADMIN PANEL -->
+        <div id="super_admin" class="panel">
+            <div class="grid-2">
+                <div class="card"><h5>ጠቅላላ አድሚን</h5><div class="num">5</div></div>
+                <div class="card"><h5>ተመዝጋቢዎች</h5><div class="num">1,240</div></div>
+            </div>
+
+            <!-- COMMAND DIRECTIVE BOX -->
+            <div class="command-box">
+                <h4>📣 የሱፐር አድሚን ትእዛዝ (Broadcast)</h4>
+                <div class="command-input-group">
+                    <input type="text" id="super-cmd" placeholder="ለ 5ቱ አድሚኖች የሚላክ ትእዛዝ...">
+                    <button class="btn" onclick="sendDirective()">ትእዛዝ አስተላልፍ</button>
+                </div>
+            </div>
+
+            <div class="table-box">
+                <h4 style="margin-bottom:10px;">👑 የአድሚኖች መቆጣጠሪያ</h4>
+                <table>
+                    <thead>
+                        <tr><th>አድሚን</th><th>ሁኔታ</th><th>ተግባር</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Loan Dept</td><td style="color:var(--green)">Active</td><td><button class="btn btn-danger btn-sm">Block</button></td></tr>
+                        <tr><td>Verification</td><td style="color:var(--green)">Active</td><td><button class="btn btn-danger btn-sm">Block</button></td></tr>
+                        <tr><td>Daily Coll.</td><td style="color:var(--green)">Active</td><td><button class="btn btn-danger btn-sm">Block</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. LOAN DEPT PANEL -->
+        <div id="loan_dept" class="panel">
+            <div class="grid-2">
+                <div class="card"><h5>የተሰጠ ብድር</h5><div class="num">4.2M</div></div>
+                <div class="card"><h5>ያልተመለሰ</h5><div class="num" style="color:var(--red)">850K</div></div>
+            </div>
+
+            <div class="command-box">
+                <h4>💬 ለተበዳሪዎች ማስጠንቀቂያ ላክ</h4>
+                <div class="command-input-group">
+                    <input type="text" placeholder="የ90 ቀን ገደባችሁ ላለፈባችሁ...">
+                    <button class="btn btn-danger">ማስጠንቀቂያ ላክ</button>
+                </div>
+            </div>
+
+            <div class="table-box">
+                <h4 style="margin-bottom:10px;">💰 የብድር መከታተያ</h4>
+                <table>
+                    <thead>
+                        <tr><th>ተበዳሪ</th><th>መጠን</th><th>ቀን</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>ዮሐንስ ገብሬ</td><td>50k</td><td>30 ቀን ቀረው</td></tr>
+                        <tr><td>መሐመድ አሊ</td><td>100k</td><td style="color:var(--red)">-5 ቀን አልፏል</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 5. VERIFICATION PANEL -->
+        <div id="doc_dept" class="panel">
+            <div class="table-box">
+                <h3 style="margin-bottom:10px;">📑 የሰነዶች ማረጋገጫ</h3>
+                <table>
+                    <thead>
+                        <tr><th>ስም</th><th>FAN / TIN</th><th>ተግባር</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ኬብሮን</td>
+                            <td>1234... / 1098...</td>
+                            <td>
+                                <button class="btn btn-success btn-sm">Approve</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 6. DAILY COLLECTION -->
+        <div id="daily_dept" class="panel">
+            <div class="table-box">
+                <h3>🏃 Daily Collection Panel</h3>
+                <p style="color:var(--text-sub); margin-top:10px;">የዕለታዊ የመስክ ሰብሳቢዎች መቆጣጠሪያ ሙሉ ስክሪን ገጽ።</p>
+            </div>
+        </div>
+
+        <!-- 7. WEEKLY/MONTHLY -->
+        <div id="monthly_dept" class="panel">
+            <div class="table-box">
+                <h3>📅 Weekly & Monthly Savings</h3>
+                <p style="color:var(--text-sub); margin-top:10px;">የሳምንታዊ እና የወርሃዊ ቁጠባዎች መቆጣጠሪያ ገጽ።</p>
+            </div>
+        </div>
+
+        <!-- 8. TREASURY -->
+        <div id="finance_dept" class="panel">
+            <div class="table-box">
+                <h3>🏦 Treasury & Finance Panel</h3>
+                <p style="color:var(--text-sub); margin-top:10px;">የካዝና ሀብትና የፋይናንስ እንቅስቃሴዎች መቆጣጠሪያ።</p>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        function openPanel(panelId, btnElement) {
+        // TELEGRAM FULL SCREEN INITIALIZATION
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand(); // ቴሌግራምን ሙሉ ስክሪን ያደርገዋል
+        }
+
+        function switchPanel(panelId) {
             // Hide all panels
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-
             // Show selected panel
             document.getElementById(panelId).classList.add('active');
-
-            // Set active button UI
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if(btnElement) btnElement.classList.add('active');
-
-            // Update Header Title
-            if(btnElement) {
-                document.getElementById('header-title').innerText = btnElement.innerText;
-            }
         }
 
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
         }
 
-        function changeColor(color) {
-            document.documentElement.style.setProperty('--accent', color);
-        }
-
         function sendDirective() {
             const msg = document.getElementById('super-cmd').value;
             if(msg) {
-                alert('ትእዛዝዎ ለሁሉም አድሚኖች ወዲያውኑ ተ አስተላልፏል፡ "' + msg + '"');
+                alert('ትእዛዝዎ ለሁሉም አድሚኖች ተ አስተላልፏል፡ "' + msg + '"');
                 document.getElementById('super-cmd').value = '';
             }
         }
